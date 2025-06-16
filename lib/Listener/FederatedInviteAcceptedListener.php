@@ -16,6 +16,10 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Listens to the federated invite accepted event.
+ * Catching the event should lead to the creation of the new remote contact from the invite.
+ */
 class FederatedInviteAcceptedListener implements IEventListener
 {
 
@@ -47,7 +51,7 @@ class FederatedInviteAcceptedListener implements IEventListener
                 $userId,
             );
             if (isset($newContact)) {
-                $this->logger->info("Created new contact with UID: " . $newContact['UID'] . " for user with uid $userId", ['app' => Application::APP_ID]);
+                $this->logger->info("Created new contact with UID: " . $newContact['UID'] . " for user with UID: $userId", ['app' => Application::APP_ID]);
             }
         } else {
             $this->logger->error("Expected an event of type FederatedInviteAcceptedEvent, but got " . get_class($event) . " instead.", ['app' => Application::APP_ID]);
