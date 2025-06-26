@@ -4,13 +4,13 @@
 -->
 
 <template>
-	<div v-if="displayCloudIdExchangeButton(propName)">
+	<div>
 		<Actions class="property__actions exchange-cloud-id">
 			<ActionButton @click="openExchangeInviteModal">
 				<template #icon>
 					<IconAccountSwitchOutline :size="20" />
 				</template>
-				Invite remote user to exchange cloud IDs. This will add the remote user to your contacts list.
+				<template>Send invitation to exchange cloud IDs.</template>
 			</ActionButton>
 		</Actions>
 
@@ -22,7 +22,7 @@
 			@close="closeExchangeInviteModal"
 			class="modal-cloud-id-exchange">
 
-			<InvitationDetails :local-contact="localContact">
+			<OcmInviteDetails :local-contact="localContact">
 				<template #name>
 					<NcTextField type="text" :placeholder="t('contacts', 'name')" :value="displayName"
 						@input="setDisplayName" />
@@ -43,7 +43,7 @@
 						{{ t('contacts', 'Send') }}
 					</NcButton>
 				</template>
-			</InvitationDetails>
+			</OcmInviteDetails>
 		</Modal>
 
 	</div>
@@ -60,11 +60,11 @@ import {
 	NcTextArea,
 	NcTextField,
 } from '@nextcloud/vue'
-import Contact from '../models/contact.js'
+import Contact from '../../models/contact.js'
 import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import IconCheck from 'vue-material-design-icons/Check.vue'
-import InvitationDetails from './CloudIdExchangeInviteDetails.vue'
-import PropertyMixin from '../mixins/PropertyMixin.js'
+import OcmInviteDetails from './OcmInviteDetails.vue'
+import PropertyMixin from '../../mixins/PropertyMixin.js'
 
 export default {
 	name: 'PropertyText',
@@ -76,7 +76,7 @@ export default {
 		IconAccountSwitchOutline,
 		IconCheck,
 		IconLoading,
-		InvitationDetails,
+		OcmInviteDetails,
 		Modal,
 		NcButton,
 		NcTextArea,
@@ -115,31 +115,22 @@ export default {
 		'setContactFormEditModeEvent:value'
 	],
 	methods: {
-		displayCloudIdExchangeButton(propName) {
-			// TODO add check for:
-			// 	1. cloud ID exchange invitation capability present ?
-			//	2. is it active ?
-			if (propName === 'cloud' && this.localContact && !(typeof this.value === 'string' || this.value instanceof String)) {
-				console.log(`displayCloudIdExchangeButton(${propName}): true`)
-				this.isNewContact = false
-				return true
-			}
-			return false
-		},
 		closeExchangeInviteModal() {
 			this.showInviteModal = false
 		},
 		openExchangeInviteModal() {
 			this.showInviteModal = true
 		},
-		sendInvitation() {
+		async sendInvitation(e) {
 			console.log('contactFormEditMode: ' + this.contactFormEditMode)
 			this.localContact.properties.find(p => p.name === 'fn').setValue(this.localDisplayName)
 			this.localContact.properties.find(p => p.name === 'email').setValue(this.localEmail)
-			this.updateContact()
+			this.localContact.properties.find(p => p.name === 'cloud').setValue('.. waiting for acceptance')
+			await this.updateContact()
 			// TODO on close: 
 			//	- display saved contact; like when save button is pressed
 			//  - the cloud ID prop should be displayed saying '... awaiting cloud ID exchange invite response'
+			console.log('setContactFormEditModeEvent')
 			this.$emit('setContactFormEditModeEvent:value', false)
 			this.showInviteModal = false
 		},
@@ -152,14 +143,21 @@ export default {
 		setMessage(e) {
 			this.localMessage = e.target.value
 		},
-		updateContact() {
-			this.fixed = false
-			this.loadingUpdate = true
+		async updateContact() {
 			try {
-				this.$store.dispatch('updateContact', this.localContact)
+				await this.$store.dispatch('updateContact', this.localContact)
+				console.log('finished updateContact')
 			} finally {
 				this.loadingUpdate = false
 			}
+			// this.saveInvite()
+			// this.fixed = false
+			// this.loadingUpdate = true
+			// try {
+			// 	await this.$store.dispatch('updateContact', this.localContact)
+			// } finally {
+			// 	this.loadingUpdate = false
+			// }
 		},
 	},
 	data() {
