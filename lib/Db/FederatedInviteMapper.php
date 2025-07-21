@@ -27,21 +27,30 @@ class FederatedInviteMapper extends DbFederatedInviteMapper {
 	}
 
     /**
-     * Returns all open federated invites of the specified user
+     * Returns all open federated invites for the user with the specified user id
      * 
      * @return array a list of FederatedInvite objects
      */
-	public function findOpenInvitesByUiddd(string $userId):array {
+	public function findOpenInvitesByUid(string $userId):array {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from(self::TABLE_NAME)
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
             ->andWhere($qb->expr()->eq('accepted', $qb->createNamedParameter(false, IQueryBuilder::PARAM_BOOL)));
-		$entities = $this->findEntities($qb);
-        foreach($entities as $entity) {
-            $this->logger->debug(get_class($entity));
-        }
-        return $entities;
+		return $this->findEntities($qb);
+	}
+    /**
+     * Returns the federated invite with the specified token for the user with the specified user id
+     * 
+     * @return FederatedInvite a list of FederatedInvite objects
+     */
+	public function findInviteByTokenAndUidd(string $token, string $userId):FederatedInvite {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from(self::TABLE_NAME)
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+            ->andWhere($qb->expr()->eq('token', $qb->createNamedParameter($token, IQueryBuilder::PARAM_STR)));
+		return $this->findEntity($qb);
 	}
 
 }

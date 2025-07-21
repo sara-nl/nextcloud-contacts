@@ -15,50 +15,53 @@
 	<AppContent v-else-if="isEmptyGroup">
 		<EmptyContent class="empty-content" :name="t('contacts', 'There are no invites')">
 			<template #icon>
-				<IconContact :size="20" />
+				<IconAccountSwitchOutline :size="20" />
 			</template>
 		</EmptyContent>
 	</AppContent>
 
 	<AppContent v-else :show-details="showDetails">
-		<!-- invites list -->
+		<!-- OCM invites list -->
 		<template #list>
 			<OcmInvitesList :list="invitesList"
 				:invites="invites"
 				:search-query="searchQuery"
-				:reload-bus="reloadBus" />
+				:reload-bus="reloadBus" 
+				@onRevoke="onRevoke" />
 		</template>
 
-		<!-- main invite details -->
-		<OcmInviteDetails :invite-key="selectedInvite" :invites="sortedInvites" :reload-bus="reloadBus" />
-	</AppContent>
+		<!-- OCM invite details -->
+		<OcmInviteDetails :invite-key="selectedInvite" />
+
+</AppContent>
 </template>
 
 <script>
 import {
 	NcAppContent as AppContent,
-	NcButton as Button,
 	NcEmptyContent as EmptyContent,
 	NcLoadingIcon as IconLoading,
 } from '@nextcloud/vue'
 
+import { generateUrl } from '@nextcloud/router'
+import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import OcmInviteDetails from '../Ocm/OcmInviteDetails.vue'
 import OcmInvitesList from '../Ocm/OcmInvitesList.vue'
-import IconContact from 'vue-material-design-icons/AccountMultiple.vue'
 import RouterMixin from '../../mixins/RouterMixin.js'
 import mitt from 'mitt'
+
+import { ROUTE_ALL_OCM_INVITES, ROUTE_NAME_ALL_OCM_INVITES } from '../../models/constants.ts'
 
 export default {
 	name: 'OcmInvitesContent',
 
 	components: {
 		AppContent,
-		Button,
+		EmptyContent,
+		IconAccountSwitchOutline,
+		IconLoading,
 		OcmInviteDetails,
 		OcmInvitesList,
-		EmptyContent,
-		IconContact,
-		IconLoading,
 	},
 
 	mixins: [RouterMixin],
@@ -78,7 +81,6 @@ export default {
 	data() {
 		return {
 			searchQuery: '',
-			// communication for ContactListItem and OcmInviteDetails (reload avatar)
 			reloadBus: mitt(),
 		}
 	},
@@ -109,13 +111,14 @@ export default {
 			return !!this.selectedInvite
 		},
 	},
-
-	methods: {
-	},
 }
 </script>
 <style lang="scss" scoped>
 .empty-content {
 	height: 100%;
+}
+.invite-revoke__buttons-row {
+	margin-top: 1em;
+	margin-left: 4em;
 }
 </style>

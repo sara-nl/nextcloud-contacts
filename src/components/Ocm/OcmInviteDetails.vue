@@ -4,87 +4,78 @@
 -->
 
 <template>
-	<AppContentDetails>
+	<NcAppContentDetails>
 		<!-- nothing selected or invite not found -->
-		<EmptyContent v-if="!invite"
-			class="empty-content"
-			:name="t('contacts', 'No invite selected')"
+		<NcEmptyContent v-if="!invite" class="empty-content" :name="t('contacts', 'No invite selected')"
 			:description="t('contacts', 'Select an invite on the list to begin')">
 			<template #icon>
-				<IconContact :size="20" />
+				<IconAccountSwitchOutline :size="20" />
 			</template>
-		</EmptyContent>
+		</NcEmptyContent>
 
-		<div class="contact-header__infos">
-			<h2>
-				{{ t('contacts', 'OCM invite') }}
-			</h2>
-			<div class="invitation-recipientemail property__row">
-				<div class="property__label">
-					<span>{{ t('contacts', 'Sent to') }}:</span>
+		<template v-else>
+			<div class="contact-header__infos">
+				<h2>
+					{{ t('contacts', 'OCM invite') }}
+				</h2>
+				<div class="invitation-recipientemail property__row">
+					<div class="property__label">
+						<span>{{ t('contacts', 'Sent to') }}:</span>
+					</div>
+					<div class="property__value">
+						<input id="invite-recipientemail" readonly="readonly" v-model="invite.recipientEmail" type="text"
+							name="recipientemail">
+					</div>
 				</div>
-				<div class="property__value">
-					<input 
-						id="invite-recipientemail"
-						readonly="readonly"
-						v-model="invite.recipientEmail"
-						type="text"
-						name="recipientemail" >
+				<div class="invitation-createdat property__row">
+					<div class="property__label">
+						<span>{{ t('contacts', 'Sent at') }}:</span>
+					</div>
+					<div class="property__value">
+						<input id="invite-createdat" readonly="readonly" :value="formatDate(invite.createdAt)" type="text"
+							name="createdat">
+					</div>
 				</div>
-			</div>
-			<div class="invitation-createdat property__row">
-				<div class="property__label">
-					<span>{{ t('contacts', 'Sent at') }}:</span>
+				<div class="invitation-expiredat property__row">
+					<div class="property__label">
+						<span>{{ t('contacts', 'Expires at') }}:</span>
+					</div>
+					<div class="property__value">
+						<input id="invite-expiredat" readonly="readonly" :value="formatDate(invite.expiredAt)" type="text"
+							name="expiredat">
+					</div>
 				</div>
-				<div class="property__value">
-					<input 
-						id="invite-createdat"
-						readonly="readonly"
-						:value="formatDate(invite.createdAt)"
-						type="text"
-						name="createdat" >
+				<div class="invitation-token property__row">
+					<div class="property__label">
+						<span>{{ t('contacts', 'Token') }}:</span>
+					</div>
+					<div class="property__value">
+						<input id="invite-token" readonly="readonly" v-model="invite.token" type="text" name="token">
+					</div>
 				</div>
-			</div>
-			<div class="invitation-expiredat property__row">
-				<div class="property__label">
-					<span>{{ t('contacts', 'Expires at') }}:</span>
-				</div>
-				<div class="property__value">
-					<input 
-						id="invite-expiredat"
-						readonly="readonly"
-						:value="formatDate(invite.expiredAt)"
-						type="text"
-						name="expiredat" >
-				</div>
-			</div>
-			<div class="invitation-token property__row">
-				<div class="property__label">
-					<span>{{ t('contacts', 'Token') }}:</span>
-				</div>
-				<div class="property__value">
-					<input 
-						id="invite-token"
-						readonly="readonly"
-						v-model="invite.token"
-						type="text"
-						name="token" >
+				<div class="invite-revoke__buttons-row">
+					<NcButton type="secondary" @click="onRevoke">
+						<template #icon>
+							<CheckIcon :size="20" />
+						</template>
+						{{ t('contacts', 'Revoke') }}
+					</NcButton>
 				</div>
 			</div>
-			<div class="actions">
-				<slot name="invitation-actions" />
-			</div>
-		</div>
-	</AppContentDetails>
+		</template>
+	</NcAppContentDetails>
 </template>
 
 <script>
 
 import {
-	NcAppContentDetails as AppContentDetails,
+	NcAppContentDetails,
+	NcButton,
+	NcEmptyContent,
 } from '@nextcloud/vue'
 
-import IconContact from 'vue-material-design-icons/AccountMultiple.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import moment from '@nextcloud/moment'
 
 const dateFormat = 'lll'
@@ -93,27 +84,17 @@ export default {
 	name: 'OcmInviteDetails',
 
 	components: {
-		IconContact,
-		AppContentDetails,
+		CheckIcon,
+		IconAccountSwitchOutline,
+		NcAppContentDetails,
+		NcButton,
+		NcEmptyContent,
 	},
 
 	props: {
 		inviteKey: {
 			type: String,
 			default: undefined,
-		},
-		invites: {
-			type: Array,
-			default: () => [],
-		},
-		reloadBus: {
-			type: Object,
-			required: true,
-		},
-		desc: {
-			type: String,
-			required: false,
-			default: '',
 		},
 	},
 
@@ -126,13 +107,19 @@ export default {
 	methods: {
 		formatDate(date) {
 			return moment(date).format(dateFormat)
-		}
-	}
+		},
+		async onRevoke() {
+			await this.$store.dispatch('deleteOcmInvite', this.invite)
+		},
+	},
 
 }
 </script>
 
 <style lang="scss" scoped>
+.empty-content {
+	margin-top: 5em;
+}
 .contact-header__infos h2 {
 	display: flex;
 	flex: 0 1 auto;

@@ -18,6 +18,8 @@ use OCA\Contacts\Service\GroupSharingService;
 use OCA\Contacts\Service\SocialApiService;
 use OCA\FederatedFileSharing\AddressHandler;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -89,7 +91,7 @@ class FederatedInvitesController extends PageController
 	 * @return DataResponse
 	 */
 	public function getInvites(): DataResponse {
-		$_invites = $this->federatedInviteMapper->findOpenInvitesByUiddd($this->userSession->getUser()->getUID());
+		$_invites = $this->federatedInviteMapper->findOpenInvitesByUid($this->userSession->getUser()->getUID());
 		$invites = [];
 		foreach ($_invites as $invite) {
 			if ($invite instanceof FederatedInvite) {
@@ -100,6 +102,33 @@ class FederatedInvitesController extends PageController
 			}
 		}
 		return new DataResponse($invites, Http::STATUS_OK);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * 
+	 * Deletes the invite with the specified token.
+
+	 * @param string $token the token of the invite to delete
+	 * @return DataResponse with data signature ['token' | 'error'] - the token of the deleted invitation or an error message in case of error
+	 */
+	public function deleteInvite(string $token = null): DataResponse {
+		if(!isset($token)) {
+			return new DataResponse(['error' => 'Token is required'], Http::STATUS_BAD_REQUEST);
+		}
+		try {
+			$uid = $this->userSession->getUser()->getUID();
+			$invite = $this->federatedInviteMapper->findInviteByTokenAndUidd($token, $uid);
+			$this->federatedInviteMapper->delete($invite);
+			return new DataResponse(['token' => $token], Http::STATUS_OK);
+		} catch(DoesNotExistException $e) {
+			$this->logger->error("Could not find invite with token=$token for user with uid=$uid . Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			return new DataResponse(['error' => 'An unexpected error occurred trying to delete the invite'], Http::STATUS_NOT_FOUND);
+		} catch (Exception $e) {
+			$this->logger->error("An unexpected error occurred deleting invite with token=$token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			return new DataResponse(['error' => 'An unexpected error occurred trying to delete the invite'], Http::STATUS_NOT_FOUND);
+		}
 	}
 
 	/**

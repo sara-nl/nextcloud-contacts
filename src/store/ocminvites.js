@@ -9,20 +9,7 @@ import OcmInvite from '../models/ocminvite.ts'
 import Vue from 'vue'
 
 const sortData = (a, b) => {
-	const nameA = typeof a.value === 'string'
-		? a.value.toUpperCase() // ignore upper and lowercase
-		: a.value.toUnixTime() // only other sorting we support is a vCardTime
-	const nameB = typeof b.value === 'string'
-		? b.value.toUpperCase() // ignore upper and lowercase
-		: b.value.toUnixTime() // only other sorting we support is a vCardTime
-
-	const score = nameA.localeCompare
-		? nameA.localeCompare(nameB)
-		: nameB - nameA
-	// if equal, fallback to the key
-	return score !== 0
-		? score
-		: a.key.localeCompare(b.key)
+	return a.key.localeCompare(b.key)
 }
 
 const state = {
@@ -49,6 +36,17 @@ const actions = {
 			})
 			.catch((error) => {
 				logger.error('Error fetching OCM invites: ' + error)
+			})
+    },
+    async deleteOcmInvite(context, invite) {
+		const token = invite.token
+		const url = generateUrl('/apps/contacts/ocm/invitations/{token}', { token: token })
+		axios.delete(url)
+			.then(response => {
+				context.commit('deleteOcmInvite', invite.key)
+			})
+			.catch((error) => {
+				logger.error('Error deleting OCM invite: ' + error)
 			})
     }
 }
@@ -84,6 +82,18 @@ const mutations = {
 			.map(invite => { return { key: invite.key, value: invite[state.orderKey] } })
 			.sort(sortData)
 	},
+
+	/**
+	 * Deletes the invite with the specified key from the OCM invites list
+	 * 
+	 * @param {object} state
+	 * @param {string} key
+	 */
+	deleteOcmInvite(state, key) {
+		const index = state.sortedOcmInvites.findIndex(search => search.key === key)
+		state.sortedOcmInvites.splice(index, 1)
+		Vue.delete(state.ocmInvites, key)
+	}
 }
 
 export default { state, getters, actions, mutations }
