@@ -106,7 +106,8 @@ export default {
 
 	methods: {
 		formatDate(date) {
-			return moment(date).format(dateFormat)
+			// moment takes milliseconds
+			return moment(date*1000).format(dateFormat)
 		},
 		async onRevoke() {
 			await this.$store.dispatch('deleteOcmInvite', this.invite)
