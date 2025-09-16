@@ -57,7 +57,7 @@ export default {
 	}
 
 	div.property__value {
-		margin-left: .2em;
+		margin-inline-start: .2em;
 		width: 80%;
 	}
 }
