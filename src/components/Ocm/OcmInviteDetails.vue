@@ -121,6 +121,7 @@ export default {
 .empty-content {
 	margin-top: 5em;
 }
+
 .contact-header__infos h2 {
 	display: flex;
 	flex: 0 1 auto;
@@ -129,6 +130,7 @@ export default {
 	min-width: 0;
 	padding-top: 30px;
 }
+
 .invitation-recipientemail.property__row {
 	.property__label, #invite-recipientemail {
 		font-weight: bold;

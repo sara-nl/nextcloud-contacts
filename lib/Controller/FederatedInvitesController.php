@@ -9,7 +9,6 @@ namespace OCA\Contacts\Controller;
 
 use Exception;
 use OC\App\CompareVersion;
-use OCA\DAV\CardDAV\CardDavBackend;
 use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\Db\FederatedInvite;
 use OCA\Contacts\Db\FederatedInviteMapper;
@@ -17,6 +16,7 @@ use OCA\Contacts\IWayfProvider;
 use OCA\Contacts\Service\FederatedInvitesService;
 use OCA\Contacts\Service\GroupSharingService;
 use OCA\Contacts\Service\SocialApiService;
+use OCA\DAV\CardDAV\CardDavBackend;
 use OCA\FederatedFileSharing\AddressHandler;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -47,11 +47,10 @@ use Sabre\DAV\UUIDUtil;
 
 /**
  * Controller for federated invites related routes.
- * 
+ *
  */
 
-class FederatedInvitesController extends PageController
-{
+class FederatedInvitesController extends PageController {
 	public function __construct(
 		IRequest $request,
 		private AddressHandler $addressHandler,
@@ -94,7 +93,7 @@ class FederatedInvitesController extends PageController
 
 	/**
 	 * Returns all open (not yet accepted) invites.
-	 * 
+	 *
 	 * @return JSONResponse
 	 */
 	#[NoAdminRequired]
@@ -105,7 +104,7 @@ class FederatedInvitesController extends PageController
 		foreach ($_invites as $invite) {
 			if ($invite instanceof FederatedInvite) {
 				array_push(
-					$invites, 
+					$invites,
 					$invite->jsonSerialize()
 				);
 			}
@@ -122,7 +121,7 @@ class FederatedInvitesController extends PageController
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function deleteInvite(string $token): JSONResponse {
-		if(!isset($token)) {
+		if (!isset($token)) {
 			return new JSONResponse(['message' => 'Token is required'], Http::STATUS_BAD_REQUEST);
 		}
 		try {
@@ -130,7 +129,7 @@ class FederatedInvitesController extends PageController
 			$invite = $this->federatedInviteMapper->findInviteByTokenAndUidd($token, $uid);
 			$this->federatedInviteMapper->delete($invite);
 			return new JSONResponse(['token' => $token], Http::STATUS_OK);
-		} catch(DoesNotExistException $e) {
+		} catch (DoesNotExistException $e) {
 			$this->logger->error("Could not find invite with token=$token for user with uid=$uid . Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'An unexpected error occurred trying to delete the invite'], Http::STATUS_NOT_FOUND);
 		} catch (Exception $e) {
@@ -141,14 +140,14 @@ class FederatedInvitesController extends PageController
 
 	/**
 	 * Sets the token and provider states which triggers display of the invite accept dialog.
-	 * 
+	 *
 	 * @param string $token
 	 * @param string $provider
 	 * @return TemplateResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function inviteAcceptDialog(string $token = "", string $provider = ""): TemplateResponse {
+	public function inviteAcceptDialog(string $token = '', string $provider = ''): TemplateResponse {
 		$this->initialStateService->provideInitialState(Application::APP_ID, 'inviteToken', $token);
 		$this->initialStateService->provideInitialState(Application::APP_ID, 'inviteProvider', $provider);
 		$this->initialStateService->provideInitialState(Application::APP_ID, 'acceptInviteDialogUrl', FederatedInvitesService::OCM_INVITE_ACCEPT_DIALOG_ROUTE);
@@ -158,15 +157,15 @@ class FederatedInvitesController extends PageController
 
 	/**
 	 * Creates an invitation to exchange contact info for the user with the specified uid.
-	 * 
+	 *
 	 * @param string $emailAddress the recipient email address to send the invitation to
-	 * @param string $message the optional message to send with the invitation 
+	 * @param string $message the optional message to send with the invitation
 	 * @return JSONResponse with data signature ['token' | 'message'] - the token of the invitation or an error message in case of error
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function createInvite(string $email, string $message): JSONResponse {
-		if(!isset($email)) {
+		if (!isset($email)) {
 			return new JSONResponse(['message' => 'Recipient email is required'], Http::STATUS_BAD_REQUEST);
 		}
 
@@ -176,7 +175,7 @@ class FederatedInvitesController extends PageController
 			$uid,
 			$email,
 		);
-		if(count($existingInvites) > 0) {
+		if (count($existingInvites) > 0) {
 			$this->logger->error("An open invite already exists for user with uid $uid and for recipient email $email", ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => $this->il10->t('An open invite already exists.')], Http::STATUS_CONFLICT);
 		}
@@ -194,18 +193,18 @@ class FederatedInvitesController extends PageController
 		$invite->setAccepted(false);
 		try {
 			$this->federatedInviteMapper->insert($invite);
-		} catch(Exception $e) {
-			$this->logger->error("An unexpected error occurred saving a new invite. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+		} catch (Exception $e) {
+			$this->logger->error('An unexpected error occurred saving a new invite. Stacktrace: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'An unexpected error occurred creating the invite.'], Http::STATUS_NOT_FOUND);
 		}
 
 		/** @var DataResponse */
 		$response = $this->sendEmail($token, $email, $message);
-		if($response->getStatus() !== Http::STATUS_OK) {
+		if ($response->getStatus() !== Http::STATUS_OK) {
 			// delete invite in case sending the email has failed
 			try {
 				$this->federatedInviteMapper->delete($invite);
-			} catch(Exception $e) {
+			} catch (Exception $e) {
 				$this->logger->error("An unexpected error occurred deleting invite with token $token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
 				return new JSONResponse(['message' => 'An unexpected error occurred creating the invite.'], Http::STATUS_NOT_FOUND);
 			}
@@ -221,15 +220,15 @@ class FederatedInvitesController extends PageController
 	/**
 	 * Accepts the invite and creates a new contact from the inviter.
 	 * On success the user is redirected to the new contact url.
-	 * 
+	 *
 	 * @param string $token the token of the invite
-	 * @param string $provider the provider of the sender of the invite 
+	 * @param string $provider the provider of the sender of the invite
 	 * @return JSONResponse with data signature ['contact' | 'message'] - the new contact url or an error message in case of error
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function inviteAccepted(string $token = "", string $provider = ""): JSONResponse {
-		if ($token === "" || $provider === "") {
+	public function inviteAccepted(string $token = '', string $provider = ''): JSONResponse {
+		if ($token === '' || $provider === '') {
 			$this->logger->error("Both token and provider must be specified. Received: token=$token, provider=$provider", ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'Both token and provider must be specified.'], Http::STATUS_NOT_FOUND);
 		}
@@ -245,8 +244,8 @@ class FederatedInvitesController extends PageController
 				// TODO take provider as is, or do some verification ??
 				"https://$provider/ocm/invite-accepted",
 				[
-					'body' =>
-					[
+					'body'
+					=> [
 						'recipientProvider' => $recipientProvider,
 						'token' => $token,
 						'userId' => $localUser->getUID(),
@@ -261,10 +260,10 @@ class FederatedInvitesController extends PageController
 
 			// Creating a contact does not return a specific 'contact already exists' error,
 			// so we must check that explicitly
-			$cloudId = $data['userID'] . "@" . $this->addressHandler->removeProtocolFromUrl($provider);
+			$cloudId = $data['userID'] . '@' . $this->addressHandler->removeProtocolFromUrl($provider);
 			$searchResult = $this->contactsManager->search($cloudId, ['CLOUD']);
 			if (count($searchResult) > 0) {
-				$this->logger->info("Contact with cloud id " . $cloudId . " already exists.", ['app' => Application::APP_ID]);
+				$this->logger->info('Contact with cloud id ' . $cloudId . ' already exists.', ['app' => Application::APP_ID]);
 				return new JSONResponse(['message' => "Contact with cloudID $cloudId already exists."], Http::STATUS_CONFLICT);
 			}
 
@@ -279,15 +278,15 @@ class FederatedInvitesController extends PageController
 				$this->logger->error("Error accepting invite (token=$token, provider=$provider): Could not create new contact.", ['app' => Application::APP_ID]);
 				return new JSONResponse(['message' => 'An unexpected error occurred trying to accept invite: could not create new contact'], Http::STATUS_NOT_FOUND);
 			}
-			$this->logger->info("Created new contact with UID: " . $newContact['UID'] . " for user with UID: " . $localUser->getUID(), ['app' => Application::APP_ID]);
+			$this->logger->info('Created new contact with UID: ' . $newContact['UID'] . ' for user with UID: ' . $localUser->getUID(), ['app' => Application::APP_ID]);
 
-			$contact = $newContact['UID'] . "~" . CardDavBackend::PERSONAL_ADDRESSBOOK_URI;
+			$contact = $newContact['UID'] . '~' . CardDavBackend::PERSONAL_ADDRESSBOOK_URI;
 			$url = $this->urlGenerator->getAbsoluteURL(
 				$this->urlGenerator->linkToRoute('contacts.page.index') . $this->il10->t('All contacts') . '/' . $contact
 			);
 			return new JSONResponse(['contact' => $url], Http::STATUS_OK);
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
-			$this->logger->error("/invite-accepted returned an error: " . print_r($responseData, true), ['app' => Application::APP_ID]);
+			$this->logger->error('/invite-accepted returned an error: ' . print_r($responseData, true), ['app' => Application::APP_ID]);
 			/**
 			 * 400: Invalid or non existing token
 			 * 409: Invite already accepted
@@ -306,30 +305,88 @@ class FederatedInvitesController extends PageController
 			return new JSONResponse(['message' => 'An unexpected error occurred trying to accept invite'], Http::STATUS_NOT_FOUND);
 		}
 	}
+	/**
+	 * Do OCM discovery on behalf of VUE frontend to avoid CSRF issues
+	 * @param string $base base url to discover
+	 * @return DataResponse
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	public function discover(string $base): DataResponse {
+		$base = trim($base);
+		if ($base === '') {
+			return new DataResponse(['error' => 'empty base'], 400);
+		}
+
+		// normalize base
+		if (!preg_match('#^https?://#i', $base)) {
+			$base = 'https://' . $base;
+		}
+		$base = rtrim($base, '/');
+
+		$client = $this->httpClient->newClient([
+			'timeout' => 5,
+			'connect_timeout' => 5,
+			'allow_redirects' => true,
+		]);
+
+		foreach ([$base . '/.well-known/ocm', $base . '/ocm-provider'] as $ep) {
+			try {
+				$resp = $client->get($ep, ['headers' => ['Accept' => 'application/json']]);
+				$code = $resp->getStatusCode();
+				if ($code >= 200 && $code < 300) {
+					$data = json_decode($resp->getBody(), true);
+					if (is_array($data) && !empty($data['inviteAcceptDialog'])) {
+						$dialog = $data['inviteAcceptDialog'];
+						$absolute = preg_match('#^https?://#i', $dialog) ? $dialog : $base . $dialog;
+						return new DataResponse([
+							'base' => $base,
+							'inviteAcceptDialog' => $dialog,
+							'inviteAcceptDialogAbsolute' => $absolute,
+							'raw' => $data,
+						]);
+					}
+				}
+			} catch (\Throwable $e) {
+				// try next endpoint
+			}
+		}
+		return new DataResponse(['error' => 'OCM discovery failed', 'base' => $base], 404);
+	}
 
 	/**
 	 * Accepts the invite and creates a new contact from the inviter.
 	 * On success the user is redirected to the new contact url.
-	 * 
+	 *
 	 * @param string $token the token of the invite
-	 * @param string $provider the provider of the sender of the invite 
+	 * @param string $provider the provider of the sender of the invite
 	 * @return TemplateResponse the WAYF page
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
-	public function wayf(string $token = "", string $provider = ""): TemplateResponse {
-        try {
+	public function wayf(string $token = '', string $provider = ''): TemplateResponse {
+		Util::addScript(Application::APP_ID, 'contacts-wayf');
+		Util::addStyle(Application::APP_ID, 'contacts-wayf');
+		try {
 			$providers = $this->wayfProvider->getMeshProviders();
+			usort($providers, function ($a, $b) {
+				return strcmp($a['name'], $b['name']);
+			});
+			$this->initialStateService->provideInitialState(Application::APP_ID, 'wayf', [
+				'providers' => $providers,
+				'token' => $token,
+				'provider' => $provider,
+			]);
 			$params = ['providers' => $providers, 'token' => $token, 'provider' => $provider];
-			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_BLANK);
-            return $template;
+			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_GUEST);
+			return $template;
 
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage() . ' Trace: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+		} catch (Exception $e) {
+			$this->logger->error($e->getMessage() . ' Trace: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
 			$params = ['error' => 'An error has occurred'];
-			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_BLANK);
-            return $template;
-        }
+			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_GUEST);
+			return $template;
+		}
 	}
 
 	/**
@@ -341,7 +398,7 @@ class FederatedInvitesController extends PageController
 	private function sendEmail(string $token, string $address, string $message): JSONResponse {
 		/** @var IMessage */
 		$email = $this->mailer->createMessage();
-		if(!$this->mailer->validateMailAddress($address)) {
+		if (!$this->mailer->validateMailAddress($address)) {
 			$this->logger->error("Could not sent invite, invalid email address '$address'", ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'Recipient email address is invalid'], Http::STATUS_NOT_FOUND);
 		}

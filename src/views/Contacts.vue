@@ -628,11 +628,13 @@ export default _default;
 	flex-direction: column;
 	gap: 4px;
 }
+
 .invite-accept-form__buttons-row {
 	display: flex;
 	gap: .6em;
 	margin-top: 1em;
 }
+
 .new-invite-form__buttons-row {
 	margin-top: 1em;
 	display: flex;
