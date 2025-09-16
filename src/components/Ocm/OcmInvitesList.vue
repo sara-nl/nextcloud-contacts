@@ -25,6 +25,7 @@ import { NcAppContentList as AppContentList } from '@nextcloud/vue'
 import OcmInvitesListItem from './OcmInvitesListItem.vue'
 import VirtualList from 'vue-virtual-scroll-list'
 
+
 export default {
 	name: 'OcmInvitesList',
 

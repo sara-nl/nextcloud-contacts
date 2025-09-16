@@ -6,7 +6,6 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import logger from '../services/logger.js'
 import OcmInvite from '../models/ocminvite.ts'
-import Vue from 'vue'
 
 const sortData = (a, b) => {
 	return a.key.localeCompare(b.key)
@@ -76,7 +75,7 @@ const mutations = {
 		state.ocmInvites = invites.reduce(function(list, _invite) {
 			const invite = new OcmInvite(_invite)
 			if (invite.token) { // we should at least have a token
-				Vue.set(list, invite.key, invite)
+				list[invite.key] = invite
 			} else {
 				console.error('Invalid invite object', invite)
 			}
@@ -105,7 +104,7 @@ const mutations = {
 	deleteOcmInvite(state, key) {
 		const index = state.sortedOcmInvites.findIndex(search => search.key === key)
 		state.sortedOcmInvites.splice(index, 1)
-		Vue.delete(state.ocmInvites, key)
+		delete state.ocmInvites[key]
 	}
 }
 

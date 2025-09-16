@@ -142,8 +142,6 @@ import IconCheck from 'vue-material-design-icons/Check.vue'
 
 import RouterMixin from '../mixins/RouterMixin.js'
 
-import RouterMixin from '../mixins/RouterMixin.js'
-
 import Contact from '../models/contact.js'
 import rfcProps from '../models/rfcProps.js'
 
