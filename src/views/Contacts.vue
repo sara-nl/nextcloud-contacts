@@ -142,8 +142,6 @@ import IconCheck from 'vue-material-design-icons/Check.vue'
 
 import RouterMixin from '../mixins/RouterMixin.js'
 
-import RouterMixin from '../mixins/RouterMixin.js'
-
 import Contact from '../models/contact.js'
 import rfcProps from '../models/rfcProps.js'
 
@@ -561,6 +559,7 @@ const _default = {
 		 * Select the first OCM invite of the list if none are selected already
 		 */
 		selectFirstOcmInviteIfNone() {
+			console.log(this.invitesList)
 			const inList = this.invitesList.findIndex(invite => invite.key === this.selectedInvite) > -1
 			if (this.selectedInvite === undefined || !inList) {
 				if (Object.keys(this.invitesList).length) {
