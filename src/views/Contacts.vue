@@ -559,7 +559,6 @@ const _default = {
 		 * Select the first OCM invite of the list if none are selected already
 		 */
 		selectFirstOcmInviteIfNone() {
-			console.log(this.invitesList)
 			const inList = this.invitesList.findIndex(invite => invite.key === this.selectedInvite) > -1
 			if (this.selectedInvite === undefined || !inList) {
 				if (Object.keys(this.invitesList).length) {
