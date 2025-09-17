@@ -6,7 +6,6 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import logger from '../services/logger.js'
 import OcmInvite from '../models/ocminvite.ts'
-import Vue from 'vue'
 
 const sortData = (a, b) => {
 	return a.key.localeCompare(b.key)
@@ -22,17 +21,17 @@ const state = {
 
 const getters = {
 	getOcmInvite: (state) => (key) => state.ocmInvites[key],
-	getOcmInvites: state => state.ocmInvites,
+	getOcmInvites: state => Object.values(state.ocmInvites),
 	getSortedOcmInvites: state => state.sortedOcmInvites,
 }
 
 const actions = {
-    async fetchOcmInvites(context) {
+    fetchOcmInvites(context) {
 		axios.get(generateUrl('/apps/contacts/ocm/invitations'))
 			.then(response => {
+				console.log(response.data)
 				context.commit('appendInvites', response.data)
 				context.commit('sortInvites', response.data)
-
 			})
 			.catch((error) => {
 				logger.error('Error fetching OCM invites: ' + error)
@@ -65,6 +64,7 @@ const actions = {
 }
 
 const mutations = {
+
 	/**
 	 * Store raw OCM invites into state
 	 * Used by the first invite fetch
@@ -76,7 +76,7 @@ const mutations = {
 		state.ocmInvites = invites.reduce(function(list, _invite) {
 			const invite = new OcmInvite(_invite)
 			if (invite.token) { // we should at least have a token
-				Vue.set(list, invite.key, invite)
+				list[invite.key] = invite
 			} else {
 				console.error('Invalid invite object', invite)
 			}
@@ -105,7 +105,7 @@ const mutations = {
 	deleteOcmInvite(state, key) {
 		const index = state.sortedOcmInvites.findIndex(search => search.key === key)
 		state.sortedOcmInvites.splice(index, 1)
-		Vue.delete(state.ocmInvites, key)
+		delete state.ocmInvites[key]
 	}
 }
 

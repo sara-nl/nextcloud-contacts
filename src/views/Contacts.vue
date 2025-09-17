@@ -142,8 +142,6 @@ import IconCheck from 'vue-material-design-icons/Check.vue'
 
 import RouterMixin from '../mixins/RouterMixin.js'
 
-import RouterMixin from '../mixins/RouterMixin.js'
-
 import Contact from '../models/contact.js'
 import rfcProps from '../models/rfcProps.js'
 
@@ -163,7 +161,7 @@ import OcmInvitesContent from '../components/AppContent/OcmInvitesContent.vue'
 const inviteToken = loadState('contacts', 'inviteToken', '')
 const inviteProvider = loadState('contacts', 'inviteProvider', '')
 
-export default {
+const _default = {
 	name: 'Contacts',
 
 	components: {
@@ -360,7 +358,10 @@ export default {
 							this.selectedGroup = GROUP_ALL_OCM_INVITES
 						}
 						// get OCM invites
-						this.fetchOcmInvites()
+						// this.fetchOcmInvites()
+						this.$store.dispatch('fetchOcmInvites').then(() => {
+							this.loadingInvites = false
+						})
 					}
 				}).then(() => {
 					if (this.inviteToken !== "" && this.inviteProvider !== "") {
@@ -383,6 +384,18 @@ export default {
 					this.loadingCircles = false
 				})
 		}
+
+		// if (isOcmInvitesEnabled) {
+		// 	// set selected group in case of invite routes to keep the Contact component working properly
+		// 	if(this.$route.meta.selectedGroup === GROUP_ALL_OCM_INVITES) {
+		// 		this.selectedGroup = GROUP_ALL_OCM_INVITES
+		// 	}
+		// 	// get OCM invites
+		// 	// this.fetchOcmInvites()
+		// 	this.$store.dispatch('fetchOcmInvites').then(() => {
+		// 		this.loadingInvites = false
+		// 	})
+		// }
 	},
 
 	methods: {
@@ -478,7 +491,8 @@ export default {
 			).then(() => {
 				this.loadingContacts = false
 				if (!this.isMobile && !this.selectedChart) {
-					this.selectedGroup === GROUP_ALL_OCM_INVITES ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
+					this.selectFirstContactIfNone()
+					// this.selectedGroup === GROUP_ALL_OCM_INVITES ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
 				}
 			})
 		},
@@ -545,6 +559,7 @@ export default {
 		 * Select the first OCM invite of the list if none are selected already
 		 */
 		selectFirstOcmInviteIfNone() {
+			console.log(this.invitesList)
 			const inList = this.invitesList.findIndex(invite => invite.key === this.selectedInvite) > -1
 			if (this.selectedInvite === undefined || !inList) {
 				if (Object.keys(this.invitesList).length) {
@@ -604,6 +619,8 @@ export default {
 		},
 	},
 }
+
+export default _default;
 </script>
 
 <style lang="scss" scoped>

@@ -88,9 +88,8 @@
 					<IconAccountSwitchOutline :size="20" />
 				</template>
 				<template #counter>
-					<NcCounterBubble v-if="ocmInvites.length">
-						{{ ocmInvites.length }}
-					</NcCounterBubble>
+					<NcCounterBubble v-if="ocmInvites.length"
+						:count="ocmInvites.length" />
 				</template>
 			</AppNavigationItem>
 

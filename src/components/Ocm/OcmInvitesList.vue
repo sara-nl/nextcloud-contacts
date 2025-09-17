@@ -10,27 +10,31 @@
 				<input v-model="query" type="text" :placeholder="t('contacts', 'Search invites …')">
 			</div>
 		</div>
-		<VirtualList ref="scroller"
+		<VList v-slot="{ item, index }"
+			ref="scroller"
 			class="contacts-list"
-			data-key="key"
-			:data-sources="filteredList"
-			:data-component="OcmInvitesListItem"
-			:estimate-size="68"
-			:extra-props="{reloadBus}" />
-	</AppContentList>
+			:data="filteredList">
+			<OcmInvitesListItem 
+				:index="index"
+				:source="item"
+				:reload-bus="reloadBus"
+			/>
+		</VList>
+
+</AppContentList>
 </template>
 
 <script>
 import { NcAppContentList as AppContentList } from '@nextcloud/vue'
 import OcmInvitesListItem from './OcmInvitesListItem.vue'
-import VirtualList from 'vue-virtual-scroll-list'
+import { VList } from 'virtua/vue'
 
-export default {
+const _default = {
 	name: 'OcmInvitesList',
 
 	components: {
 		AppContentList,
-		VirtualList,
+		VList,
 	},
 
 	props: {
@@ -67,9 +71,27 @@ export default {
 			return this.$route.params.selectedGroup
 		},
 		filteredList() {
-			return this.list
+			let invitesList = this.list
 				.filter(item => this.matchSearch(this.invites[item.key]))
 				.map(item => this.invites[item.key])
+
+			invitesList = invitesList.filter(item => item !== undefined)
+			console.log(invitesList)
+			return invitesList
+
+			// let contactsList = this.list
+			// 	.filter(item => this.matchSearch(this.contacts[item.key]))
+			// 	.map(item => this.contacts[item.key])
+
+			// contactsList = contactsList.filter(item => item !== undefined)
+
+			// contactsList.forEach((contact, index) => {
+			// 	if (contact !== undefined) {
+			// 		contact.isMultiSelected = this.multiSelectedContacts.has(index)
+			// 	}
+			// })
+
+			// return contactsList
 		},
 	},
 
@@ -136,6 +158,8 @@ export default {
 		},
 	},
 }
+export default _default;
+
 </script>
 
 <style lang="scss" scoped>
