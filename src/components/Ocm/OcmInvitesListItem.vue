@@ -50,7 +50,7 @@ export default {
 	computed: {
 		// usable and valid html id for scrollTo
 		id() {
-			return window.btoa(this.source.key).slice(0, -2)
+			return this.source.key.slice(0, -2)
 		},
 	},
 	methods: {

@@ -21,7 +21,7 @@ const state = {
 
 const getters = {
 	getOcmInvite: (state) => (key) => state.ocmInvites[key],
-	getOcmInvites: state => Object.values(state.ocmInvites),
+	getOcmInvites: state => state.ocmInvites,
 	getSortedOcmInvites: state => state.sortedOcmInvites,
 }
 

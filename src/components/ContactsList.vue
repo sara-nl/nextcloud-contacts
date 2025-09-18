@@ -92,7 +92,7 @@ import IconCancelRaw from '@mdi/svg/svg/cancel.svg?raw'
 import IconDeleteRaw from '@mdi/svg/svg/delete-outline.svg'
 import RouterMixin from '../mixins/RouterMixin.js'
 
-const _default = {
+export default {
 	name: 'ContactsList',
 
 	components: {
@@ -171,7 +171,6 @@ const _default = {
 					contact.isMultiSelected = this.multiSelectedContacts.has(index)
 				}
 			})
-			console.log(contactsList)
 			return contactsList
 		},
 		isMultiSelecting() {
@@ -375,7 +374,6 @@ const _default = {
 		},
 	},
 }
-export default _default
 </script>
 
 <style lang="scss" scoped>

@@ -20,8 +20,7 @@
 				:reload-bus="reloadBus"
 			/>
 		</VList>
-
-</AppContentList>
+	</AppContentList>
 </template>
 
 <script>
@@ -34,6 +33,7 @@ const _default = {
 
 	components: {
 		AppContentList,
+		OcmInvitesListItem,
 		VList,
 	},
 
@@ -76,22 +76,7 @@ const _default = {
 				.map(item => this.invites[item.key])
 
 			invitesList = invitesList.filter(item => item !== undefined)
-			console.log(invitesList)
 			return invitesList
-
-			// let contactsList = this.list
-			// 	.filter(item => this.matchSearch(this.contacts[item.key]))
-			// 	.map(item => this.contacts[item.key])
-
-			// contactsList = contactsList.filter(item => item !== undefined)
-
-			// contactsList.forEach((contact, index) => {
-			// 	if (contact !== undefined) {
-			// 		contact.isMultiSelected = this.multiSelectedContacts.has(index)
-			// 	}
-			// })
-
-			// return contactsList
 		},
 	},
 
@@ -165,8 +150,7 @@ export default _default;
 <style lang="scss" scoped>
 // Make virtual scroller scrollable
 .contacts-list {
-	max-height: calc(100vh - var(--header-height) - 48px);
-	overflow: auto;
+	flex: 1 auto;
 }
 
 // Add empty header to contacts-list that solves overlapping of contacts with app-navigation-toogle
