@@ -120,6 +120,7 @@ export default {
         const target = await this.discoverProvider(input);
         window.location.href = target;
       } catch (e) {
+        // TODO: handle error and show error dialog to user
         console.error(e);
       }
     },
