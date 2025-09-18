@@ -364,7 +364,7 @@ class FederatedInvitesController extends PageController {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
-	public function wayf(string $token = '', string $provider = ''): TemplateResponse {
+	public function wayf(string $token = ''): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'contacts-wayf');
 		Util::addStyle(Application::APP_ID, 'contacts-wayf');
 		try {
@@ -372,21 +372,18 @@ class FederatedInvitesController extends PageController {
 			usort($providers, function ($a, $b) {
 				return strcmp($a['name'], $b['name']);
 			});
+			$providerDomain = parse_url($this->urlGenerator->getBaseUrl(), PHP_URL_HOST);
 			$this->initialStateService->provideInitialState(Application::APP_ID, 'wayf', [
 				'providers' => $providers,
+				'providerDomain' => $providerDomain,
 				'token' => $token,
-				'provider' => $provider,
 			]);
-			$params = ['providers' => $providers, 'token' => $token, 'provider' => $provider];
-			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_GUEST);
-			return $template;
 
 		} catch (Exception $e) {
 			$this->logger->error($e->getMessage() . ' Trace: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
-			$params = ['error' => 'An error has occurred'];
-			$template = new TemplateResponse('contacts', 'wayf', $params, TemplateResponse::RENDER_AS_GUEST);
-			return $template;
 		}
+		$template = new TemplateResponse('contacts', 'wayf', [], TemplateResponse::RENDER_AS_GUEST);
+		return $template;
 	}
 
 	/**
@@ -416,9 +413,8 @@ class FederatedInvitesController extends PageController {
 		);
 		$email->setFrom([Util::getDefaultEmailAddress($instanceName) => $senderName]);
 
-		$fqdn = $this->federatedInvitesService->getProviderFQDN();
 		$wayfEndpoint = $this->wayfProvider->getWayfEndpoint();
-		$inviteLink = "$wayfEndpoint?token=$token&provider=$fqdn";
+		$inviteLink = "$wayfEndpoint?token=$token";
 
 		$body = "$message\nThe invite link: $inviteLink";
 		$email->setPlainBody($body);
