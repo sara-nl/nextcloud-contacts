@@ -115,8 +115,9 @@ export default {
 .empty-content {
 	height: 100%;
 }
+
 .invite-revoke__buttons-row {
 	margin-top: 1em;
-	margin-left: 4em;
+	margin-inline-start: 4em;
 }
 </style>

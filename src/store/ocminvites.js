@@ -62,6 +62,7 @@ const actions = {
 }
 
 const mutations = {
+
 	/**
 	 * Store raw OCM invites into state
 	 * Used by the first invite fetch

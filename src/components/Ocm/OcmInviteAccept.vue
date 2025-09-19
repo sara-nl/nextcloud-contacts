@@ -13,7 +13,7 @@
 			<label>Token</label><span style="margin: 05em;">{{ token }}</span>
 		</div>
 		<div class="invitation-provider">
-			<label>Provider</label><span style="margin: 05em;">{{ provider }}</span>
+			<label>Provider</label><span style="margin: 05em;">{{ providerDomain }}</span>
 		</div>
 		<div class="actions">
 			<slot name="accept-invite-actions" />
@@ -32,7 +32,7 @@ export default {
 			default: '',
 			required: true,
 		},
-		provider: {
+		providerDomain: {
 			type: String,
 			default: '',
 			required: true,
