@@ -142,8 +142,6 @@ import IconCheck from 'vue-material-design-icons/Check.vue'
 
 import RouterMixin from '../mixins/RouterMixin.js'
 
-import RouterMixin from '../mixins/RouterMixin.js'
-
 import Contact from '../models/contact.js'
 import rfcProps from '../models/rfcProps.js'
 
@@ -422,6 +420,11 @@ const _default = {
 			// iterate over all properties (filter is not usable on objects and we need the key of the property)
 			const properties = rfcProps.properties
 			for (const name in properties) {
+				// Show cloud ID property if OCM invites is enabled
+				if(isOcmInvitesEnabled && name === 'cloud') {
+					properties[name].default = true
+					properties[name].multiple = false
+				}
 				if (properties[name].default) {
 					const defaultData = properties[name].defaultValue
 					let defaultValue = defaultData.value
