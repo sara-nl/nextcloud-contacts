@@ -15,7 +15,6 @@ class FederatedInvite extends DbFederatedInvite {
 
 	public function __construct() {
 	}
-
 	public function jsonSerialize(): array {
 		return [
 			'accepted' => $this->accepted,
