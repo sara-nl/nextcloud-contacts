@@ -185,10 +185,8 @@ class FederatedInvitesController extends PageController {
 		$token = UUIDUtil::getUUID();
 		$invite->setToken($token);
 		// created-/expiredAt in seconds
-		$invite->setCreatedAt($this->timeFactory->getTime());
-		// TODO get expiration period from config
-		// For now take 30 days
-		$invite->setExpiredAt($invite->getCreatedAt() + 2592000);
+		$invite->setCreatedAt($this->timeFactory->now()->getTimestamp());
+		$invite->setExpiredAt($this->federatedInvitesService->getInviteExpirationDate($invite->getCreatedAt()));
 		$invite->setRecipientEmail($email);
 		$invite->setAccepted(false);
 		try {
@@ -305,6 +303,43 @@ class FederatedInvitesController extends PageController {
 			return new JSONResponse(['message' => 'An unexpected error occurred trying to accept invite'], Http::STATUS_NOT_FOUND);
 		}
 	}
+
+	/**
+	 * Resets the creation and expiration dates, and sends a new invite to the recipient.
+	 * 
+	 * 
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function resendInvite(string $token): JSONResponse {
+		$invite = $this->federatedInviteMapper->findByToken($token);
+		$sendDate = date('Y-m-d', $invite->getCreatedAt());
+		$invite->setCreatedAt($this->timeFactory->now()->getTimestamp());
+		$invite->setExpiredAt($this->federatedInvitesService->getInviteExpirationDate($invite->getCreatedAt()));
+		$this->federatedInviteMapper->update($invite);
+		$initiatorDisplayName = $this->userSession->getUser()->getDisplayName();
+		// a resend notification that refers to the previously sent invite
+		$message = $this->il10->t(
+			'This is a copy of an invite send to you previously by %1$s on %2$s', 
+			[
+				$initiatorDisplayName,
+				$sendDate
+			]
+		);
+		/** @var DataResponse */
+		$response = $this->sendEmail($token, $invite->getRecipientEmail(), $message);
+		if ($response->getStatus() !== Http::STATUS_OK) {
+			$this->logger->error("An unexpected error occurred resending the invite with token $token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			return new JSONResponse(['message' => 'An unexpected error occurred resending the invite.'], Http::STATUS_NOT_FOUND);
+		}
+
+		// the invite url
+		$inviteUrl = $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->linkToRoute('contacts.page.index') . 'ocm-invites/' . $invite->getRecipientEmail()
+		);
+		return new JSONResponse(['invite' => $inviteUrl], Http::STATUS_OK);
+	}
+
 	/**
 	 * Do OCM discovery on behalf of VUE frontend to avoid CSRF issues
 	 * @param string $base base url to discover
@@ -398,7 +433,6 @@ class FederatedInvitesController extends PageController {
 		}
 		$email->setTo([$address]);
 
-		// TODO do we want to share the inviter's name ??
 		$instanceName = $this->defaults->getName();
 		$initiatorDisplayName = $this->userSession->getUser()->getDisplayName();
 		$senderName = $this->il10->t(
@@ -409,6 +443,8 @@ class FederatedInvitesController extends PageController {
 			]
 		);
 		$email->setFrom([Util::getDefaultEmailAddress($instanceName) => $senderName]);
+		$subject = $this->il10->t('%1$s invites you to exchange cloud IDs', [$initiatorDisplayName]);
+		$email->setSubject($subject);
 
 		$wayfEndpoint = $this->wayfProvider->getWayfEndpoint();
 		$inviteLink = "$wayfEndpoint?token=$token";

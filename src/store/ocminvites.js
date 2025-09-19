@@ -48,6 +48,19 @@ const actions = {
 				logger.error('Error deleting OCM invite with token ' + token)
 			})
     },
+    async resendOcmInvite(context, invite) {
+		const token = invite.token
+		const url = generateUrl('/apps/contacts/ocm/invitations/{token}/resend', { token: token })
+		const response = await axios.patch(url)
+			.then(response => {
+				return response
+			})
+			.catch((error) => {
+				logger.error('Error resending OCM invite with token ' + token)
+				throw error
+			})
+		return response
+    },
 	async newOcmInvite(context, invite) {
 		const url = generateUrl('/apps/contacts/ocm/invitations')
 		const response = await axios.post(url, invite)

@@ -535,7 +535,6 @@ const _default = {
 					// no 'group not found' error when displaying invite accept dialog
 					if(this.$route.name !== ROUTE_NAME_INVITE_ACCEPT_DIALOG) {
 						showError(t('contacts', 'Group {group} not found', { group: this.selectedGroup }))
-						console.error('Group not found', this.selectedGroup)
 					}
 					this.$router.push({
 						name: 'root',

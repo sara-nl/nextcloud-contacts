@@ -19,6 +19,8 @@ class FederatedInvitesService {
 	private const OCM_INVITES_ENABLED_BY_DEFAULT = false;
 	// The default route of the invite accept dialog
 	public const OCM_INVITE_ACCEPT_DIALOG_ROUTE = '/ocm/invite-accept-dialog';
+	// The default expiration period of a new invite in seconds, ie. 30 days
+	private const INVITE_EXPIRATION_PERIOD_SECONDS = 2592000;
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -42,5 +44,14 @@ class FederatedInvitesService {
 		$serverUrl = $this->urlGenerator->getAbsoluteURL('/');
 		$fqdn = parse_url($serverUrl)['host'];
 		return $fqdn;
+	}
+
+	/**
+	 * Returns the expiration date.
+	 * @param int $creationDate
+	 * @return int the expiration date
+	 */
+	public function getInviteExpirationDate(int $creationDate): int {
+		return $creationDate + self::INVITE_EXPIRATION_PERIOD_SECONDS;
 	}
 }

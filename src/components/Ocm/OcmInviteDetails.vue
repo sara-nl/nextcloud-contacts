@@ -54,6 +54,12 @@
 					</div>
 				</div>
 				<div class="invite-revoke__buttons-row">
+					<NcButton type="secondary" @click="onResend">
+						<template #icon>
+							<CheckIcon :size="20" />
+						</template>
+						{{ t('contacts', 'Resend') }}
+					</NcButton>
 					<NcButton type="secondary" @click="onRevoke">
 						<template #icon>
 							<CheckIcon :size="20" />
@@ -109,6 +115,15 @@ export default {
 			// moment takes milliseconds
 			return moment(date*1000).format(dateFormat)
 		},
+		async onResend() {
+			try {
+				const response = await this.$store.dispatch('resendOcmInvite', this.invite)
+				window.open(response.data.invite, '_self')
+			} catch(error) {
+				const message = error.response.data.message
+				showError(t('contacts', message))
+			}
+		},
 		async onRevoke() {
 			await this.$store.dispatch('deleteOcmInvite', this.invite)
 		},
@@ -122,13 +137,20 @@ export default {
 	margin-top: 5em;
 }
 
-.contact-header__infos h2 {
-	display: flex;
-	flex: 0 1 auto;
-	justify-content: flex-end;
-	width: 200px;
-	min-width: 0;
-	padding-top: 30px;
+.contact-header__infos {
+	h2 {
+		display: flex;
+		flex: 0 1 auto;
+		justify-content: flex-end;
+		width: 200px;
+		min-width: 0;
+		padding-top: 30px;
+	}
+	button.button-vue {
+		display: inline-flex;
+		margin-left: 1em;
+	}
+	margin-left: 1em;
 }
 
 .invitation-recipientemail.property__row {
