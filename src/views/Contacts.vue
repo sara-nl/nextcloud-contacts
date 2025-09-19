@@ -491,8 +491,7 @@ const _default = {
 			).then(() => {
 				this.loadingContacts = false
 				if (!this.isMobile && !this.selectedChart) {
-					this.selectFirstContactIfNone()
-					// this.selectedGroup === GROUP_ALL_OCM_INVITES ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
+					this.$route.name === ROUTE_NAME_OCM_INVITE ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
 				}
 			})
 		},
