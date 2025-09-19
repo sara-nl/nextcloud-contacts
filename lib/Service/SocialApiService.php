@@ -38,7 +38,7 @@ class SocialApiService {
 		private IURLGenerator $urlGen,
 		private ITimeFactory $timeFactory,
 		private ImageResizer $imageResizer,
-        private LoggerInterface $logger
+		private LoggerInterface $logger,
 	) {
 		$this->appName = Application::APP_ID;
 	}
@@ -221,13 +221,13 @@ class SocialApiService {
 	/**
 	 * Creates a federated contact and adds it to the address book of the local user with the specified userId,
 	 * unless a contact with the specified cloudId already exists for that local user.
-	 * 
+	 *
 	 * @param {string} cloudId the cloud id of the federated contact
 	 * @param {string} email the email of the federated contact
 	 * @param {string} name the name of the federated contact
 	 * @param {string} userId the uid of the local user
 	 */
-	public function createFederatedContact(string $cloudId, string $email, string $name, string $userId): array|null {
+	public function createFederatedContact(string $cloudId, string $email, string $name, string $userId): ?array {
 		try {
 			// Set up the contacts provider for the user with the specified uid
 			$cm = $this->serverContainer->get(ContactsManager::class);
@@ -236,7 +236,7 @@ class SocialApiService {
 			// if contact already exists we simply return
 			$searchResult = $this->manager->search($cloudId, ['CLOUD']);
 			if (count($searchResult) > 0) {
-				$this->logger->info("Contact with cloud id " . $cloudId . " already exists.", ['app' => Application::APP_ID]);
+				$this->logger->info('Contact with cloud id ' . $cloudId . ' already exists.', ['app' => Application::APP_ID]);
 				return null;
 			}
 
@@ -254,7 +254,7 @@ class SocialApiService {
 				}
 			}
 			if (!isset($addressBook)) {
-				$this->logger->error("Contacts address book not found. Unable to add the new contact on invite accepted.", ['app' => Application::APP_ID]);
+				$this->logger->error('Contacts address book not found. Unable to add the new contact on invite accepted.', ['app' => Application::APP_ID]);
 				return null;
 			}
 
@@ -268,7 +268,7 @@ class SocialApiService {
 			);
 			return $newContact;
 		} catch (Exception $e) {
-			$this->logger->error("An exception occurred creating a federated contact: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			$this->logger->error('An exception occurred creating a federated contact: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
 		}
 		return null;
 	}
