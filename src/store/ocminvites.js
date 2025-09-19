@@ -52,7 +52,6 @@ const actions = {
 		const url = generateUrl('/apps/contacts/ocm/invitations')
 		const response = await axios.post(url, invite)
 			.then(response => {
-				console.log(response)
 				return response
 			})
 			.catch((error) => {

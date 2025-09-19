@@ -142,7 +142,7 @@ class FederatedInvitesController extends PageController {
 	 * Sets the token and provider states which triggers display of the invite accept dialog.
 	 *
 	 * @param string $token
-	 * @param string $provider
+	 * @param string $providerDomain
 	 * @return TemplateResponse
 	 */
 	#[NoAdminRequired]

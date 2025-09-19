@@ -3,10 +3,10 @@
     <template #default>
       <div class="wayf-body">
         <div v-if="token !== ''">
-          <h2>Providers</h2>
-          <p>Where are you from?</p>
-          <p>Please tell us your Cloud Provider.</p>
-          <div v-if="federations">
+          <h2>{{ t('contacts', 'Providers') }}</h2>
+          <p>{{ t('contacts', 'Where are you from?') }}</p>
+          <p>{{ t('contacts', 'Please tell us your Cloud Provider.') }}</p>
+          <div v-if="providers.length !== 0">
             <NcTextField
               v-model="query"
               label="Type to search"
