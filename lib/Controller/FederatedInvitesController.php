@@ -368,13 +368,10 @@ class FederatedInvitesController extends PageController {
 		Util::addScript(Application::APP_ID, 'contacts-wayf');
 		Util::addStyle(Application::APP_ID, 'contacts-wayf');
 		try {
-			$providers = $this->wayfProvider->getMeshProviders();
-			usort($providers, function ($a, $b) {
-				return strcmp($a['name'], $b['name']);
-			});
+			$federations = $this->wayfProvider->getMeshProviders();
 			$providerDomain = parse_url($this->urlGenerator->getBaseUrl(), PHP_URL_HOST);
 			$this->initialStateService->provideInitialState(Application::APP_ID, 'wayf', [
-				'providers' => $providers,
+				'federations' => $federations,
 				'providerDomain' => $providerDomain,
 				'token' => $token,
 			]);

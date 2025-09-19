@@ -7,6 +7,7 @@ use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\Service\FederatedInvitesService;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\OCM\IOCMDiscoveryService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -21,6 +22,7 @@ class WayfProvider implements IWayfProvider {
 		private IClientService $httpClient,
 		private FederatedInvitesService $federatedInvitesService,
 		private LoggerInterface $logger,
+		private IOCMDiscoveryService $discovery,
 	) {
 	}
 
@@ -29,26 +31,56 @@ class WayfProvider implements IWayfProvider {
 	 *
 	 * @return array an array containing all mesh providers
 	 */
+
+
 	public function getMeshProviders(): array {
-		$meshProvidersServiceUrl = $this->appConfig->getValueString(Application::APP_ID, 'mesh_providers_service');
-		if ($meshProvidersServiceUrl === '') {
-			$this->logger->error("Unable to retrieve mesh providers. App config key 'mesh_providers_service' is not configured.", ['app' => Application::APP_ID]);
-			return [];
-		}
-		try {
-			$client = $this->httpClient->newClient();
-			$response = $client->get($meshProvidersServiceUrl);
-			$responseData = $response->getBody();
-			$data = json_decode($responseData, true);
+		$urls = preg_split('/\s+/', trim($this->appConfig->getValueString(Application::APP_ID, 'mesh_providers_service')));
+		$federations = [];
 
-			// TODO implement /invite-accept-dialog endpoint discovery through the https://<providerFQDN>/.well-known/ocm endpoint
-			// and add it to the providers if not present.
+		$found = [];
+		foreach ($urls as $url) {
+			if ($url === '') {
+				continue;
+			}
+			try {
+				$data = json_decode($this->httpClient->newClient()->get($url)->getBody(), true);
+				$fed = $data['federation'] ?? 'Unknown';
+				$federations[$fed] = $federations[$fed] ?? [];
 
-			return $data;
-		} catch (Exception $e) {
-			$this->logger->error('Could not retrieve the list of mesh providers. Stacktrace: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
-			return [];
+				foreach ($data['servers'] as $prov) {
+					$fqdn = parse_url($prov['url'], PHP_URL_HOST);
+					if (in_array($fqdn, $found)) {
+						continue;
+					}
+					$disc = $this->discovery->discover($prov['url'], true);
+					$inviteAcceptDialog = $disc->getInviteAcceptDialog();
+					if ($inviteAcceptDialog === '') {
+						$inviteAcceptDialog = $prov['url'] . '/apps/contacts/ocm/invite-accept-dialog';
+						$res = $this->httpClient->newClient()->head($inviteAcceptDialog, [
+							'timeout' => 1,
+							'connect_timeout' => 1,
+							'allow_redirects' => true,
+							'headers' => ['Accept' => 'text/html,application/json'],
+						]);
+						$code = $res->getStatusCode();
+						if (!($code >= 200 && $code < 400)) {
+							continue;
+						}
+					}
+					$federations[$fed][] = [
+						'provider' => $disc->getProvider(),
+						'name' => $prov['displayName'],
+						'fqdn' => $fqdn,
+						'inviteAcceptDialog' => $inviteAcceptDialog,
+					];
+					array_push($found, $fqdn);
+				}
+				usort($federations[$fed], fn ($a, $b) => strcmp($a['name'], $b['name']));
+			} catch (Exception $e) {
+				$this->logger->error('Fetch/discovery failed for ' . $url . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			}
 		}
+		return $federations;
 	}
 
 	/**

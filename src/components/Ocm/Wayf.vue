@@ -16,30 +16,35 @@
             >
               <template #icon><Magnify :size="20" /></template>
             </NcTextField>
-
-            <ul id="wayf-list" class="wayf-list">
-              <NcListItem
-                v-for="p in filtered"
-                :key="p.fqdn"
-                :href="
-                  'https://' +
-                  p.fqdn +
-                  p.inviteAcceptDialog +
-                  '?token=' +
-                  token +
-                  '&providerDomain=' +
-                  providerDomain
-                "
-                :name="p.name"
-                oneLine
-              >
-                <template #icon>
-                  <NcListItemIcon :name="p.name" :subname="p.fqdn">
-                    <WeatherCloudyArrowRight :size="20" />
-                  </NcListItemIcon>
-                </template>
-              </NcListItem>
-            </ul>
+            <div
+              v-for="(providers, federation) in federations"
+              :key="federation"
+            >
+              <h3>{{ federation }}</h3>
+              <ul id="wayf-list" class="wayf-list">
+                <NcListItem
+                  v-for="p in filteredBy(providers)"
+                  :key="p.fqdn"
+                  :href="
+                    'https://' +
+                    p.fqdn +
+                    p.inviteAcceptDialog +
+                    '?token=' +
+                    token +
+                    '&providerDomain=' +
+                    providerDomain
+                  "
+                  :name="p.name"
+                  oneLine
+                >
+                  <template #icon>
+                    <NcListItemIcon :name="p.name" :subname="p.fqdn">
+                      <WeatherCloudyArrowRight :size="20" />
+                    </NcListItemIcon>
+                  </template>
+                </NcListItem>
+              </ul>
+            </div>
           </div>
           <NcTextField
             v-model="manualProvider"
@@ -83,21 +88,11 @@ export default {
     WeatherCloudyArrowRight,
   },
   props: {
-    providers: { type: Array, default: () => [] },
+    federations: { type: Object, default: () => ({}) },
     providerDomain: { type: String, default: "" },
     token: { type: String, default: "" },
   },
   data: () => ({ query: "" }),
-  computed: {
-    filtered() {
-      const q = this.query.trim().toLowerCase();
-      if (!q) return this.providers;
-      return this.providers.filter((p) =>
-        [p.name, p.fqdn].some((v) => String(v).toLowerCase().includes(q)),
-      );
-    },
-  },
-
   methods: {
     async discoverProvider(base) {
       const resp = await axios.get(generateUrl("/apps/contacts/ocm/discover"), {
@@ -112,6 +107,13 @@ export default {
       if (this.provider) u.searchParams.set("provider", this.provider);
       if (this.token) u.searchParams.set("token", this.token);
       return u.toString();
+    },
+    filteredBy(providers) {
+      const s = (this.query || "").toLowerCase();
+      return providers.filter(
+        (p) =>
+          p.name.toLowerCase().includes(s) || p.fqdn.toLowerCase().includes(s),
+      );
     },
     async goToManualProvider() {
       const input = (this.manualProvider || "").trim();

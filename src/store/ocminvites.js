@@ -29,6 +29,7 @@ const actions = {
     fetchOcmInvites(context) {
 		axios.get(generateUrl('/apps/contacts/ocm/invitations'))
 			.then(response => {
+				console.log(response.data)
 				context.commit('appendInvites', response.data)
 				context.commit('sortInvites', response.data)
 			})
