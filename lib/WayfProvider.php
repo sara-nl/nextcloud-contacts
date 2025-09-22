@@ -92,6 +92,25 @@ class WayfProvider implements IWayfProvider {
 		}
 		return $federations;
 	}
+	/**
+	 * Returns all mesh providers from cache if possible.
+	 *
+	 * @return array an array containing all mesh providers
+	 */
+
+
+	public function getMeshProvidersFromCache(): array {
+		$json = $this->appConfig->getValueString(Application::APP_ID, 'federations_cache');
+		$data = json_decode($json, true);
+		if (array_key_exists('expires', $data)) {
+			$this->logger->debug('Cache hit, expires at: ' . $data['expires'], ['app' => Application::APP_ID]);
+			unset($data['expires']);
+		} else {
+			$this->logger->debug('Cache miss: cron job should update providers.', ['app' => Application::APP_ID]);
+			$data = $this->getMeshProviders();
+		}
+		return $data;
+	}
 
 	/**
 	 * Returns the WAYF (Where Are You From) login page endpoint to be used in the invitation link.
