@@ -43,7 +43,12 @@ class WayfProvider implements IWayfProvider {
 				continue;
 			}
 			try {
-				$data = json_decode($this->httpClient->newClient()->get($url)->getBody(), true);
+				$res = $this->httpClient->newClient()->get($url);
+				$code = $res->getStatusCode();
+				if (!($code >= 200 && $code < 400)) {
+					continue;
+				}
+				$data = json_decode($res->getBody(), true);
 				$fed = $data['federation'] ?? 'Unknown';
 				$federations[$fed] = $federations[$fed] ?? [];
 
@@ -52,8 +57,13 @@ class WayfProvider implements IWayfProvider {
 					if (in_array($fqdn, $found)) {
 						continue;
 					}
-					$disc = $this->discovery->discover($prov['url'], true);
-					$inviteAcceptDialog = $disc->getInviteAcceptDialog();
+					try {
+						$disc = $this->discovery->discover($prov['url'], true);
+						$inviteAcceptDialog = $disc->getInviteAcceptDialog();
+					} catch (Exception $e) {
+						$this->logger->error('Discovery failed for ' . $prov['url'] . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
+						continue;
+					}
 					if ($inviteAcceptDialog === '') {
 						$inviteAcceptDialog = $prov['url'] . '/apps/contacts/ocm/invite-accept-dialog';
 						$res = $this->httpClient->newClient()->head($inviteAcceptDialog, [
@@ -77,7 +87,7 @@ class WayfProvider implements IWayfProvider {
 				}
 				usort($federations[$fed], fn ($a, $b) => strcmp($a['name'], $b['name']));
 			} catch (Exception $e) {
-				$this->logger->error('Fetch/discovery failed for ' . $url . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
+				$this->logger->error('Fetch failed for ' . $url . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
 			}
 		}
 		return $federations;
