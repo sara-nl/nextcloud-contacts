@@ -403,7 +403,7 @@ class FederatedInvitesController extends PageController {
 		Util::addScript(Application::APP_ID, 'contacts-wayf');
 		Util::addStyle(Application::APP_ID, 'contacts-wayf');
 		try {
-			$federations = $this->wayfProvider->getMeshProviders();
+			$federations = $this->wayfProvider->getMeshProvidersFromCache();
 			$providerDomain = parse_url($this->urlGenerator->getBaseUrl(), PHP_URL_HOST);
 			$this->initialStateService->provideInitialState(Application::APP_ID, 'wayf', [
 				'federations' => $federations,
