@@ -306,8 +306,8 @@ class FederatedInvitesController extends PageController {
 
 	/**
 	 * Resets the creation and expiration dates, and sends a new invite to the recipient.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -320,7 +320,7 @@ class FederatedInvitesController extends PageController {
 		$initiatorDisplayName = $this->userSession->getUser()->getDisplayName();
 		// a resend notification that refers to the previously sent invite
 		$message = $this->il10->t(
-			'This is a copy of an invite send to you previously by %1$s on %2$s', 
+			'This is a copy of an invite send to you previously by %1$s on %2$s',
 			[
 				$initiatorDisplayName,
 				$sendDate
