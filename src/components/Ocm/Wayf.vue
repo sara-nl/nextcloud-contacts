@@ -26,8 +26,6 @@
                   v-for="p in filteredBy(providers)"
                   :key="p.fqdn"
                   :href="
-                    'https://' +
-                    p.fqdn +
                     p.inviteAcceptDialog +
                     '?token=' +
                     token +
