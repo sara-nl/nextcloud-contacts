@@ -7,14 +7,14 @@
 
 namespace OCA\Contacts\Command;
 
-use OCP\IConfig;
+use OCP\IAppConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DisableOcmInvites extends Command {
 	public function __construct(
-		protected IConfig $config,
+		protected IAppConfig $appConfig,
 	) {
 		parent::__construct();
 	}
@@ -26,14 +26,15 @@ class DisableOcmInvites extends Command {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$isAlreadyDisabled = $this->config->getAppValue('contacts', 'ocm_invites_enabled') === '0';
+		$isAlreadyDisabled = $this->appConfig->getValueBool('contacts', 'ocm_invites_enabled') === false;
 
 		if ($isAlreadyDisabled) {
 			$output->writeln('OCM Invites already disabled.');
 			return self::SUCCESS;
 		}
 
-		$this->config->setAppValue('contacts', 'ocm_invites_enabled', '0');
+		$this->appConfig->setValueBool('contacts', 'ocm_invites_enabled', false);
+		$this->appConfig->deleteKey('core', 'ocm_invite_accept_dialog');
 		$output->writeln('OCM Invites successfully disabled.');
 		return self::SUCCESS;
 	}
