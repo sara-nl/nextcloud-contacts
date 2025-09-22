@@ -148,9 +148,9 @@ export default {
 	}
 	button.button-vue {
 		display: inline-flex;
-		margin-left: 1em;
+		margin-inline-start: 1em;
 	}
-	margin-left: 1em;
+	margin-inline-start: 1em;
 }
 
 .invitation-recipientemail.property__row {
