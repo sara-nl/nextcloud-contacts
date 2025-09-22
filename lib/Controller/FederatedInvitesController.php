@@ -329,7 +329,7 @@ class FederatedInvitesController extends PageController {
 		/** @var DataResponse */
 		$response = $this->sendEmail($token, $invite->getRecipientEmail(), $message);
 		if ($response->getStatus() !== Http::STATUS_OK) {
-			$this->logger->error("An unexpected error occurred resending the invite with token $token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			$this->logger->error("An unexpected error occurred resending the invite with token $token. HTTP response status: " . $response->getStatus(), ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'An unexpected error occurred resending the invite.'], Http::STATUS_NOT_FOUND);
 		}
 
