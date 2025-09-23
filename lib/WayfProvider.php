@@ -56,7 +56,7 @@ class WayfProvider implements IWayfProvider {
 
 				foreach ($data['servers'] as $prov) {
 					$fqdn = parse_url($prov['url'], PHP_URL_HOST);
-					$our_fqdn = parse_url($this->urlGenerator->getAbsolutUrl('/'))['host'];
+					$our_fqdn = parse_url($this->urlGenerator->getAbsoluteUrl('/'))['host'];
 					if (($our_fqdn == $fqdn) || in_array($fqdn, $found)) {
 						continue;
 					}
