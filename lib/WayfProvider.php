@@ -7,6 +7,7 @@ use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\Service\FederatedInvitesService;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IURLGenerator;
 use OCP\OCM\IOCMDiscoveryService;
 use Psr\Log\LoggerInterface;
 
@@ -23,6 +24,7 @@ class WayfProvider implements IWayfProvider {
 		private FederatedInvitesService $federatedInvitesService,
 		private LoggerInterface $logger,
 		private IOCMDiscoveryService $discovery,
+		private IURLGenerator $urlGenerator,
 	) {
 	}
 
@@ -54,7 +56,8 @@ class WayfProvider implements IWayfProvider {
 
 				foreach ($data['servers'] as $prov) {
 					$fqdn = parse_url($prov['url'], PHP_URL_HOST);
-					if (in_array($fqdn, $found)) {
+					$our_fqdn = parse_url($this->urlGenerator->getAbsolutUrl('/'))['host'];
+					if (($our_fqdn == $fqdn) || in_array($fqdn, $found)) {
 						continue;
 					}
 					try {
