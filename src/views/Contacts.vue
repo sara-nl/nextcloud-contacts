@@ -358,7 +358,6 @@ const _default = {
 							this.selectedGroup = GROUP_ALL_OCM_INVITES
 						}
 						// get OCM invites
-						// this.fetchOcmInvites()
 						this.$store.dispatch('fetchOcmInvites').then(() => {
 							this.loadingInvites = false
 						})
@@ -384,18 +383,6 @@ const _default = {
 					this.loadingCircles = false
 				})
 		}
-
-		// if (isOcmInvitesEnabled) {
-		// 	// set selected group in case of invite routes to keep the Contact component working properly
-		// 	if(this.$route.meta.selectedGroup === GROUP_ALL_OCM_INVITES) {
-		// 		this.selectedGroup = GROUP_ALL_OCM_INVITES
-		// 	}
-		// 	// get OCM invites
-		// 	// this.fetchOcmInvites()
-		// 	this.$store.dispatch('fetchOcmInvites').then(() => {
-		// 		this.loadingInvites = false
-		// 	})
-		// }
 	},
 
 	methods: {
@@ -491,7 +478,7 @@ const _default = {
 			).then(() => {
 				this.loadingContacts = false
 				if (!this.isMobile && !this.selectedChart) {
-					this.$route.name === ROUTE_NAME_OCM_INVITE ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
+					this.$route.name === ROUTE_NAME_OCM_INVITE || this.$route.name === ROUTE_NAME_ALL_OCM_INVITES ? this.selectFirstOcmInviteIfNone() : this.selectFirstContactIfNone()
 				}
 			})
 		},

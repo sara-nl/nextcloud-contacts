@@ -279,8 +279,9 @@ class FederatedInvitesController extends PageController {
 			$this->logger->info('Created new contact with UID: ' . $newContact['UID'] . ' for user with UID: ' . $localUser->getUID(), ['app' => Application::APP_ID]);
 
 			$contact = $newContact['UID'] . '~' . CardDavBackend::PERSONAL_ADDRESSBOOK_URI;
+			$key = base64_encode($contact);
 			$url = $this->urlGenerator->getAbsoluteURL(
-				$this->urlGenerator->linkToRoute('contacts.page.index') . $this->il10->t('All contacts') . '/' . $contact
+				$this->urlGenerator->linkToRoute('contacts.page.index') . $this->il10->t('All contacts') . '/' . $key
 			);
 			return new JSONResponse(['contact' => $url], Http::STATUS_OK);
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
