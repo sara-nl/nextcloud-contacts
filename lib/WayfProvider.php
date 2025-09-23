@@ -102,7 +102,7 @@ class WayfProvider implements IWayfProvider {
 	public function getMeshProvidersFromCache(): array {
 		$json = $this->appConfig->getValueString(Application::APP_ID, 'federations_cache');
 		$data = json_decode($json, true);
-		if (array_key_exists('expires', $data)) {
+		if (isset($data) && array_key_exists('expires', $data)) {
 			$this->logger->debug('Cache hit, expires at: ' . $data['expires'], ['app' => Application::APP_ID]);
 			unset($data['expires']);
 		} else {
