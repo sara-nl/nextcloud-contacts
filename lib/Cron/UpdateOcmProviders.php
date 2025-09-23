@@ -1,4 +1,3 @@
-
 <?php
 
 declare(strict_types=1);
@@ -13,10 +12,10 @@ namespace OCA\Contacts\Cron;
 use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\IWayfProvider;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\BackgroundJob\QueuedJob;
+use OCP\BackgroundJob\TimedJob;
 use OCP\IAppConfig;
 
-class UpdateOcmProviders extends QueuedJob {
+class UpdateOcmProviders extends TimedJob {
 	// Run every five minutes
 	private const int EXPIRE_TIME = 5 * 60;
 	public function __construct(
