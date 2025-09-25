@@ -382,7 +382,19 @@ class FederatedInvitesController extends PageController {
 							'inviteAcceptDialogAbsolute' => $absolute,
 							'raw' => $data,
 						]);
+					} elseif (empty($data['inviteAcceptDialog'])) {
+						// We can not check and see, because we have to be logged in here
+						// so we will just risk it.
+						$dialog = $base . $this->wayfProvider::INVITE_ACCEPT_DIALOG;
+						$absolute = preg_match('#^https?://#i', $dialog) ? $dialog : $base . $dialog;
+						return new DataResponse([
+							'base' => $base,
+							'inviteAcceptDialog' => $dialog,
+							'inviteAcceptDialogAbsolute' => $absolute,
+							'raw' => $data,
+						]);
 					}
+
 				}
 			} catch (\Throwable $e) {
 				// try next endpoint

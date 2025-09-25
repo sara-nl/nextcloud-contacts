@@ -93,7 +93,7 @@ export default {
   data: () => ({ query: "" }),
   methods: {
     async discoverProvider(base) {
-      const resp = await axios.get(generateUrl("/apps/contacts/ocm/discover"), {
+      const resp = await axios.get(generateUrl("/apps/contacts/discover"), {
         params: { base },
         timeout: 8000,
       });
@@ -102,7 +102,7 @@ export default {
 
       // append provider & token safely
       const u = new URL(resp.data.inviteAcceptDialogAbsolute);
-      if (this.provider) u.searchParams.set("provider", this.provider);
+      if (this.providerDomain) u.searchParams.set("providerDomain", this.providerDomain);
       if (this.token) u.searchParams.set("token", this.token);
       return u.toString();
     },

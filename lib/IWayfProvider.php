@@ -2,6 +2,8 @@
 
 namespace OCA\Contacts;
 
+use OCA\Contacts\Service\FederatedInvitesService;
+
 /**
  * Interface IWayfProvider.
  *
@@ -11,6 +13,7 @@ interface IWayfProvider {
 	// The default wayf page route.
 	public const WAYF_ROUTE = '/wayf';
 	public const DISCOVERY_ROUTE = '/discover';
+	public const INVITE_ACCEPT_DIALOG = '/index.php/apps/contacts' . FederatedInvitesService::OCM_INVITE_ACCEPT_DIALOG_ROUTE;
 
 	/**
 	 * Returns all mesh providers.

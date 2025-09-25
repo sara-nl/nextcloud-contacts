@@ -68,17 +68,8 @@ class WayfProvider implements IWayfProvider {
 						continue;
 					}
 					if ($inviteAcceptDialog === '') {
-						$inviteAcceptDialog = $prov['url'] . '/apps/contacts/ocm/invite-accept-dialog';
-						$res = $this->httpClient->newClient()->head($inviteAcceptDialog, [
-							'timeout' => 1,
-							'connect_timeout' => 1,
-							'allow_redirects' => true,
-							'headers' => ['Accept' => 'text/html,application/json'],
-						]);
-						$code = $res->getStatusCode();
-						if (!($code >= 200 && $code < 400)) {
-							continue;
-						}
+						// We fall back on Nextcloud default path
+						$inviteAcceptDialog = $prov['url'] . $this::INVITE_ACCEPT_DIALOG;
 					}
 					$federations[$fed][] = [
 						'provider' => $disc->getProvider(),

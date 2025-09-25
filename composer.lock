@@ -4,9 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "25f759465a31de9cdf3f335722164189",
-    "packages": [],
-    "packages-dev": [
+    "content-hash": "bcc9d068d39a6e67a6860cef5b50b2e0",
+    "packages": [
         {
             "name": "bamarni/composer-bin-plugin",
             "version": "1.8.2",
@@ -63,7 +62,9 @@
                 "source": "https://github.com/bamarni/composer-bin-plugin/tree/1.8.2"
             },
             "time": "2022-10-31T08:38:03+00:00"
-        },
+        }
+    ],
+    "packages-dev": [
         {
             "name": "christophwurst/nextcloud_testing",
             "version": "v1.0.1",
@@ -511,16 +512,16 @@
         },
         {
             "name": "php-cs-fixer/shim",
-            "version": "v3.87.2",
+            "version": "v3.88.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/shim.git",
-                "reference": "257258b810cabf78b55bd7367c911e7cc8089b8b"
+                "reference": "f0ac6c4006ed7817cadb251f2741db2c111a009f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/257258b810cabf78b55bd7367c911e7cc8089b8b",
-                "reference": "257258b810cabf78b55bd7367c911e7cc8089b8b",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/f0ac6c4006ed7817cadb251f2741db2c111a009f",
+                "reference": "f0ac6c4006ed7817cadb251f2741db2c111a009f",
                 "shasum": ""
             },
             "require": {
@@ -557,9 +558,9 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/shim/issues",
-                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.87.2"
+                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.88.0"
             },
-            "time": "2025-09-10T09:52:07+00:00"
+            "time": "2025-09-24T21:32:19+00:00"
         },
         {
             "name": "php-webdriver/webdriver",
