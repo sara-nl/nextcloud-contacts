@@ -239,9 +239,19 @@ class FederatedInvitesController extends PageController {
 			$recipientProvider = $this->federatedInvitesService->getProviderFQDN();
 			$client = $this->httpClient->newClient();
 			$responseData = null;
+			$provider_url = parse_url($provider);
+			$scheme = $provider_url['scheme'] ?? 'https';
+			$domain = $provider_url['host'] ?? '';
+			if ($domain == '') {
+				$this->logger->error("Invalid provider URL: $provider", ['app' => Application::APP_ID]);
+				return new JSONResponse(['message' => 'Invalid provider URL.'], Http::STATUS_NOT_FOUND);
+			}
+			if (isset($provider_url['port'])) {
+				$domain .= ':' . $provider_url['port'];
+			}
+
 			$response = $client->post(
-				// TODO take provider as is, or do some verification ??
-				"https://$provider/ocm/invite-accepted",
+				"$scheme://$domain/ocm/invite-accepted",
 				[
 					'body'
 					=> [
