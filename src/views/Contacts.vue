@@ -575,7 +575,7 @@ const _default = {
 			this.showManualInvite = true
 		},
 		manualInviteCancel() {
-			this.showManualInvite = true
+			this.showManualInvite = false
 		},
 
 		/**
