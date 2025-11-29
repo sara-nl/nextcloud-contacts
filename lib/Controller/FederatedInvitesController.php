@@ -156,23 +156,22 @@ class FederatedInvitesController extends PageController {
 	 *
 	 * @param string $emailAddress the recipient email address to send the invitation to
 	 * @param string $message the optional message to send with the invitation
+	 * @param string $note optional note/label for identifying the invite
 	 * @return JSONResponse with data signature ['token' | 'message'] - the token of the invitation or an error message in case of error
 	 */
 	#[NoAdminRequired]
-	public function createInvite(string $email, string $message): JSONResponse {
-		if (!isset($email)) {
-			return new JSONResponse(['message' => 'Recipient email is required'], Http::STATUS_BAD_REQUEST);
-		}
-
-		// check for existing open invite for the specified email and return 'invite exists'
+	public function createInvite(string $email = '', string $message = '', string $note = ''): JSONResponse {
+		// check for existing open invite for the specified email, only if email provided
 		$uid = $this->userSession->getUser()->getUID();
-		$existingInvites = $this->federatedInviteMapper->findOpenInvitesByRecipientEmail(
-			$uid,
-			$email,
-		);
-		if (count($existingInvites) > 0) {
-			$this->logger->error("An open invite already exists for user with uid $uid and for recipient email $email", ['app' => Application::APP_ID]);
-			return new JSONResponse(['message' => $this->il10->t('An open invite already exists.')], Http::STATUS_CONFLICT);
+		if (!empty($email)) {
+			$existingInvites = $this->federatedInviteMapper->findOpenInvitesByRecipientEmail(
+				$uid,
+				$email,
+			);
+			if (count($existingInvites) > 0) {
+				$this->logger->error("An open invite already exists for user with uid $uid and for recipient email $email", ['app' => Application::APP_ID]);
+				return new JSONResponse(['message' => $this->il10->t('An open invite already exists.')], Http::STATUS_CONFLICT);
+			}
 		}
 
 		$invite = new FederatedInvite();
@@ -182,7 +181,13 @@ class FederatedInvitesController extends PageController {
 		// created-/expiredAt in seconds
 		$invite->setCreatedAt($this->timeFactory->now()->getTimestamp());
 		$invite->setExpiredAt($this->federatedInvitesService->getInviteExpirationDate($invite->getCreatedAt()));
-		$invite->setRecipientEmail($email);
+		if (!empty($email)) {
+			$invite->setRecipientEmail($email);
+		}
+		// Store note in recipientName field (used as label until invite is accepted)
+		if (!empty($note)) {
+			$invite->setRecipientName($note);
+		}
 		$invite->setAccepted(false);
 		try {
 			$this->federatedInviteMapper->insert($invite);
@@ -192,22 +197,26 @@ class FederatedInvitesController extends PageController {
 		}
 
 		$senderProvider = $this->federatedInvitesService->getProviderFQDN();
-		/** @var JSONResponse */
-		$response = $this->sendEmail($token, $senderProvider, $email, $message);
-		if ($response->getStatus() !== Http::STATUS_OK) {
-			// delete invite in case sending the email has failed
-			try {
-				$this->federatedInviteMapper->delete($invite);
-			} catch (Exception $e) {
-				$this->logger->error("An unexpected error occurred deleting invite with token $token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
-				return new JSONResponse(['message' => 'An unexpected error occurred creating the invite.'], Http::STATUS_NOT_FOUND);
+
+		// Only send email if email address provided
+		if (!empty($email)) {
+			/** @var JSONResponse */
+			$response = $this->sendEmail($token, $senderProvider, $email, $message);
+			if ($response->getStatus() !== Http::STATUS_OK) {
+				// delete invite in case sending the email has failed
+				try {
+					$this->federatedInviteMapper->delete($invite);
+				} catch (Exception $e) {
+					$this->logger->error("An unexpected error occurred deleting invite with token $token. Stacktrace: " . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+					return new JSONResponse(['message' => 'An unexpected error occurred creating the invite.'], Http::STATUS_NOT_FOUND);
+				}
+				return $response;
 			}
-			return $response;
 		}
 
-		// the new invite url
+		// invite url, use token instead of email for routing
 		$inviteUrl = $this->urlGenerator->getAbsoluteURL(
-			$this->urlGenerator->linkToRoute('contacts.page.index') . 'ocm-invites/' . $email
+			$this->urlGenerator->linkToRoute('contacts.page.index') . 'ocm-invites/' . $token
 		);
 		return new JSONResponse(['invite' => $inviteUrl], Http::STATUS_OK);
 	}
@@ -327,6 +336,12 @@ class FederatedInvitesController extends PageController {
 	#[NoAdminRequired]
 	public function resendInvite(string $token): JSONResponse {
 		$invite = $this->federatedInviteMapper->findByToken($token);
+
+		// Cannot resend if no email address
+		if (empty($invite->getRecipientEmail())) {
+			return new JSONResponse(['message' => $this->il10->t('Cannot resend: no email address')], Http::STATUS_BAD_REQUEST);
+		}
+
 		$sendDate = date('Y-m-d', $invite->getCreatedAt());
 		$invite->setCreatedAt($this->timeFactory->now()->getTimestamp());
 		$invite->setExpiredAt($this->federatedInvitesService->getInviteExpirationDate($invite->getCreatedAt()));
@@ -348,9 +363,9 @@ class FederatedInvitesController extends PageController {
 			return $response;
 		}
 
-		// the invite url
+		// the invite url, use token instead of email for routing
 		$inviteUrl = $this->urlGenerator->getAbsoluteURL(
-			$this->urlGenerator->linkToRoute('contacts.page.index') . 'ocm-invites/' . $invite->getRecipientEmail()
+			$this->urlGenerator->linkToRoute('contacts.page.index') . 'ocm-invites/' . $invite->getToken()
 		);
 		return new JSONResponse(['invite' => $inviteUrl], Http::STATUS_OK);
 	}
