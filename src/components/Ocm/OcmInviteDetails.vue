@@ -39,6 +39,7 @@
 				<!-- Share buttons -->
 				<div class="share-section" data-testid="ocm-invite-share-section">
 					<h3>{{ t('contacts', 'Share invite') }}</h3>
+					<p class="share-hint">{{ t('contacts', 'The invite link is the easiest way to share. Invite codes are for manual acceptance.') }}</p>
 					<div class="share-buttons">
 						<NcButton type="secondary" @click="copyToClipboard(wayfLink, 'Invite link')" data-testid="ocm-invite-link-copy-btn">
 							<template #icon>
@@ -46,17 +47,17 @@
 							</template>
 							{{ t('contacts', 'Copy invite link') }}
 						</NcButton>
-						<NcButton type="secondary" @click="copyToClipboard(plainInviteString, 'Invite token')" data-testid="ocm-invite-token-copy-btn">
+						<NcButton type="secondary" @click="copyToClipboard(plainInviteString, 'Invite code')" data-testid="ocm-invite-token-copy-btn">
 							<template #icon>
 								<ContentCopyIcon :size="20" />
 							</template>
-							{{ t('contacts', 'Copy token') }}
+							{{ t('contacts', 'Copy invite code') }}
 						</NcButton>
-						<NcButton type="secondary" @click="copyToClipboard(base64InviteString, 'Base64 token')" data-testid="ocm-invite-base64-copy-btn">
+						<NcButton v-if="encodedCopyButtonEnabled" type="secondary" @click="copyToClipboard(base64InviteString, 'Encoded invite')" data-testid="ocm-invite-base64-copy-btn">
 							<template #icon>
 								<ContentCopyIcon :size="20" />
 							</template>
-							{{ t('contacts', 'Copy base64') }}
+							{{ t('contacts', 'Copy encoded invite') }}
 						</NcButton>
 					</div>
 				</div>
@@ -91,6 +92,7 @@ import {
 	NcEmptyContent,
 } from '@nextcloud/vue'
 import { showSuccess, showError } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import ContentCopyIcon from 'vue-material-design-icons/ContentCopy.vue'
@@ -116,6 +118,17 @@ export default {
 			type: String,
 			default: undefined,
 		},
+	},
+
+	data() {
+		const config = loadState('contacts', 'ocmInvitesConfig', {
+			optionalMail: false,
+			ccSender: true,
+			encodedCopyButton: false,
+		})
+		return {
+			encodedCopyButtonEnabled: config.encodedCopyButton,
+		}
 	},
 
 	computed: {
@@ -223,17 +236,20 @@ export default {
 	background: var(--color-background-dark);
 	border-radius: var(--border-radius-large);
 
+	.share-hint {
+		font-size: 0.85em;
+		color: var(--color-text-maxcontrast);
+		margin-bottom: 0.75em;
+	}
+
 	.share-buttons {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		display: flex;
+		flex-direction: column;
 		gap: 0.5em;
 
-		@media (max-width: 600px) {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		@media (max-width: 400px) {
-			grid-template-columns: 1fr;
+		:deep(.button-vue) {
+			width: 100%;
+			justify-content: flex-start;
 		}
 	}
 }

@@ -663,6 +663,11 @@ const _default = {
 			this.showNewInviteForm = true
 		},
 		async sendNewInvite() {
+			// Validate: if user checked "send via email", email must be filled
+			if (this.ocmInvite.sendEmail && !this.ocmInvite.email?.trim()) {
+				showError(t('contacts', 'Please enter an email address or uncheck "Send invite via email"'))
+				return
+			}
 			try {
 				const response = await this.$store.dispatch(
 					'newOcmInvite',
