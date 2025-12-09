@@ -143,6 +143,7 @@ class FederatedInvitesController extends PageController {
 	 * @return TemplateResponse
 	 */
 	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function inviteAcceptDialog(string $token = '', string $providerDomain = ''): TemplateResponse {
 		$this->initialStateService->provideInitialState(Application::APP_ID, 'inviteToken', $token);
 		$this->initialStateService->provideInitialState(Application::APP_ID, 'inviteProvider', $providerDomain);
