@@ -1,0 +1,30 @@
+diff --git a/src/models/rfcProps.js b/src/models/rfcProps.js
+index 8bb2d894..5953f835 100644
+--- a/src/models/rfcProps.js
++++ b/src/models/rfcProps.js
+@@ -98,7 +98,8 @@ const properties = {
+ 			{ id: 'WORK', name: t('contacts', 'Work') },
+ 			{ id: 'OTHER', name: t('contacts', 'Other') },
+ 		],
+-		primary: false,
++		default: true,
++		primary: true,
+ 	},
+ 	adr: {
+ 		multiple: true,
+@@ -404,6 +405,7 @@ const fieldOrder = [
+ 	// primary fields
+ 	'tel',
+ 	'email',
++	'cloud',
+ 	'adr',
+ 	'bday',
+ 	'url',
+@@ -420,7 +422,6 @@ const fieldOrder = [
+ 	'x-phonetic-first-name',
+ 	'x-phonetic-last-name',
+ 	'gender',
+-	'cloud',
+ 	'impp',
+ 	'geo',
+ 	'note',
