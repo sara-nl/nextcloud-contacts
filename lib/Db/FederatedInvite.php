@@ -16,30 +16,30 @@ use OCP\DB\Types;
  * @method bool isAccepted()
  * @method void setAccepted(bool $accepted)
  * @method int|null getAcceptedAt()
- * @method void setAcceptedAt(int $acceptedAt)
- * @method int|null getCreatedAt()
+ * @method void setAcceptedAt(?int $acceptedAt)
+ * @method int getCreatedAt()
  * @method void setCreatedAt(int $createdAt)
  * @method int|null getExpiredAt()
- * @method void setExpiredAt(int $expiredAt)
+ * @method void setExpiredAt(?int $expiredAt)
  * @method string|null getRecipientEmail()
- * @method void setRecipientEmail(string $recipientEmail)
+ * @method void setRecipientEmail(?string $recipientEmail)
  * @method string|null getRecipientName()
- * @method void setRecipientName(string $recipientName)
+ * @method void setRecipientName(?string $recipientName)
  * @method string|null getRecipientProvider()
- * @method void setRecipientProvider(string $recipientProvider)
+ * @method void setRecipientProvider(?string $recipientProvider)
  * @method string|null getRecipientUserId()
- * @method void setRecipientUserId(string $recipientUserId)
+ * @method void setRecipientUserId(?string $recipientUserId)
  * @method string getToken()
  * @method void setToken(string $token)
- * @method string|null getUserId()
+ * @method string getUserId()
  * @method void setUserId(string $userId)
  */
 
 class FederatedInvite extends Entity {
 	protected bool $accepted = false;
-	protected ?int $acceptedAt = 0;
+	protected ?int $acceptedAt = null;
 	protected int $createdAt = 0;
-	protected ?int $expiredAt = 0;
+	protected ?int $expiredAt = null;
 	protected ?string $recipientEmail = null;
 	protected ?string $recipientName = null;
 	protected ?string $recipientProvider = null;

@@ -8,36 +8,66 @@ declare(strict_types=1);
  */
 namespace OCA\Contacts\Listener;
 
-use OC\Core\AppInfo\ConfigLexicon;
+use OCA\Contacts\AppInfo\Application;
+use OCA\Contacts\ConfigLexicon as ContactsConfigLexicon;
+use OCA\Contacts\Service\FederatedInvitesService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use OCP\OCM\Events\LocalOCMDiscoveryEvent;
+use OCP\OCM\Events\ResourceTypeRegisterEvent;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
-/** @template-implements IEventListener<LocalOCMDiscoveryEvent> */
+/** @template-implements IEventListener<Event> */
 class OcmDiscoveryListener implements IEventListener {
-
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
+		private LoggerInterface $logger,
 	) {
 	}
 
 	/**
-	 * This handler will register the capability invite-accepted
-	 * and set the invite accept dialog url.
+	 * This handler validates invite accept dialog configuration
+	 * for OCM discovery events.
 	 *
-	 * @param Event $event an event of type LocalOCMDiscoveryEvent
+	 * @param Event $event an event of type LocalOCMDiscoveryEvent or ResourceTypeRegisterEvent
 	 * @return void
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof LocalOCMDiscoveryEvent) {
-			$event->addCapability('invite-accepted');
-			$inviteAcceptDialog = $this->appConfig->getValueString('core', ConfigLexicon::OCM_INVITE_ACCEPT_DIALOG);
-			if ($inviteAcceptDialog !== '') {
-				$event->getProvider()->setInviteAcceptDialog($this->urlGenerator->linkToRouteAbsolute($inviteAcceptDialog));
-			}
+		if (!$this->isOcmDiscoveryEvent($event)) {
+			return;
 		}
+
+		if (!$this->appConfig->getValueBool(Application::APP_ID, ContactsConfigLexicon::OCM_INVITES_ENABLED)) {
+			return;
+		}
+
+		$inviteAcceptDialog = trim($this->appConfig->getValueString('core', FederatedInvitesService::CORE_OCM_INVITE_ACCEPT_DIALOG_KEY));
+		if ($inviteAcceptDialog === '') {
+			$this->logger->warning('OCM invites are enabled but invite accept dialog route is empty', [
+				'app' => Application::APP_ID,
+				'routeConfigKey' => FederatedInvitesService::CORE_OCM_INVITE_ACCEPT_DIALOG_KEY,
+			]);
+			return;
+		}
+
+		try {
+			$this->urlGenerator->linkToRouteAbsolute($inviteAcceptDialog);
+		} catch (Throwable $e) {
+			$this->logger->warning('OCM invites are enabled but invite accept dialog route cannot be resolved', [
+				'app' => Application::APP_ID,
+				'route' => $inviteAcceptDialog,
+				'exception' => $e,
+			]);
+			return;
+		}
+	}
+
+	private function isOcmDiscoveryEvent(Event $event): bool {
+		return $event instanceof ResourceTypeRegisterEvent
+			|| $event instanceof LocalOCMDiscoveryEvent;
 	}
 }

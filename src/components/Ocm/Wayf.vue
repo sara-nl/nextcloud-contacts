@@ -1,129 +1,215 @@
+<!--
+  - SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
-  <NcGuestContent appName="contacts" class="wayf">
-    <template #default>
-      <div class="wayf-body">
-        <div v-if="token !== ''">
-          <h2>Providers</h2>
-          <p>Where are you from?</p>
-          <p>Please tell us your Cloud Provider.</p>
-          <div v-if="federations">
-            <NcTextField
-              v-model="query"
-              label="Type to search"
-              type="search"
-              id="wayf-search"
-              name="search"
-            >
-              <template #icon><Magnify :size="20" /></template>
-            </NcTextField>
-            <div
-              v-for="(providers, federation) in federations"
-              :key="federation"
-            >
-              <h3>{{ federation }}</h3>
-              <ul id="wayf-list" class="wayf-list">
-                <NcListItem
-                  v-for="p in filteredBy(providers)"
-                  :key="p.fqdn"
-                  :href="
-                    p.inviteAcceptDialog +
-                    '?token=' +
-                    token +
-                    '&providerDomain=' +
-                    providerDomain
-                  "
-                  :name="p.name"
-                  oneLine
-                >
-                  <template #icon>
-                    <NcListItemIcon :name="p.name" :subname="p.fqdn">
-                      <WeatherCloudyArrowRight :size="20" />
-                    </NcListItemIcon>
-                  </template>
-                </NcListItem>
-              </ul>
-            </div>
-          </div>
-          <NcTextField
-            v-model="manualProvider"
-            label="No providers? No problem! Enter provider manually."
-            type="text"
-            id="wayf-manual"
-            name="manual"
-            @keyup.enter="goToManualProvider"
-          >
-            <template #icon><WeatherCloudyArrowRight :size="20" /></template>
-          </NcTextField>
-        </div>
-        <div v-else>
-          <p>You need a token for this feature to work.</p>
-        </div>
-      </div>
-    </template>
-  </NcGuestContent>
+	<NcGuestContent app-name="contacts" class="wayf">
+		<template #default>
+			<div class="wayf-body">
+				<div v-if="token !== ''">
+					<h2>{{ t('contacts', 'Providers') }}</h2>
+					<p>{{ t('contacts', 'Where are you from?') }}</p>
+					<p>{{ t('contacts', 'Please tell us your cloud provider.') }}</p>
+					<div v-if="hasFederationData">
+						<NcTextField
+							id="wayf-search"
+							v-model="query"
+							:label="t('contacts', 'Type to search')"
+							type="search"
+							name="search">
+							<template #icon>
+								<Magnify :size="20" />
+							</template>
+						</NcTextField>
+						<div v-if="hasVisibleProviders">
+							<div
+								v-for="group in visibleFederations"
+								:key="group.federation">
+								<h3>{{ group.federation }}</h3>
+								<ul class="wayf-list">
+									<NcListItem
+										v-for="p in group.providers"
+										:key="p.fqdn"
+										:href="p.inviteUrl"
+										:name="p.name"
+										one-line>
+										<template #icon>
+											<NcListItemIcon :name="p.name" :subname="p.fqdn">
+												<WeatherCloudyArrowRight :size="20" />
+											</NcListItemIcon>
+										</template>
+									</NcListItem>
+								</ul>
+							</div>
+						</div>
+						<p v-else class="wayf-empty">
+							{{ t('contacts', 'No providers match your search.') }}
+						</p>
+					</div>
+					<p v-else class="wayf-empty">
+						{{ t('contacts', 'No providers are currently available.') }}
+					</p>
+					<form class="wayf-manual-form" @submit.prevent="goToManualProvider">
+						<NcTextField
+							id="wayf-manual"
+							v-model="manualProvider"
+							:label="t('contacts', 'No provider listed? Enter one manually.')"
+							type="text"
+							name="manual">
+							<template #icon>
+								<WeatherCloudyArrowRight :size="20" />
+							</template>
+						</NcTextField>
+						<div class="wayf-manual-actions">
+							<NcButton type="submit">
+								{{ t('contacts', 'Continue') }}
+							</NcButton>
+						</div>
+					</form>
+				</div>
+				<div v-else>
+					<p>{{ t('contacts', 'You need a token for this feature to work.') }}</p>
+				</div>
+			</div>
+		</template>
+	</NcGuestContent>
 </template>
 
 <script>
-import axios from "@nextcloud/axios";
-import Magnify from "vue-material-design-icons/Magnify.vue";
-import WeatherCloudyArrowRight from "vue-material-design-icons/WeatherCloudyArrowRight.vue";
-import { generateUrl } from "@nextcloud/router";
+import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
 import {
-  NcGuestContent,
-  NcListItem,
-  NcListItemIcon,
-  NcTextField,
-} from "@nextcloud/vue";
+	NcButton,
+	NcGuestContent,
+	NcListItem,
+	NcListItemIcon,
+	NcTextField,
+} from '@nextcloud/vue'
+import Magnify from 'vue-material-design-icons/Magnify.vue'
+import WeatherCloudyArrowRight from 'vue-material-design-icons/WeatherCloudyArrowRight.vue'
 
 export default {
-  name: "Wayf",
-  components: {
-    Magnify,
-    NcGuestContent,
-    NcListItem,
-    NcListItemIcon,
-    NcTextField,
-    WeatherCloudyArrowRight,
-  },
-  props: {
-    federations: { type: Object, default: () => ({}) },
-    providerDomain: { type: String, default: "" },
-    token: { type: String, default: "" },
-  },
-  data: () => ({ query: "" }),
-  methods: {
-    async discoverProvider(base) {
-      const resp = await axios.get(generateUrl("/apps/contacts/discover"), {
-        params: { base },
-        timeout: 8000,
-      });
-      if (!resp.data?.inviteAcceptDialogAbsolute)
-        throw new Error("Discovery failed");
+	name: 'Wayf',
+	components: {
+		Magnify,
+		NcButton,
+		NcGuestContent,
+		NcListItem,
+		NcListItemIcon,
+		NcTextField,
+		WeatherCloudyArrowRight,
+	},
 
-      // append provider & token safely
-      const u = new URL(resp.data.inviteAcceptDialogAbsolute);
-      if (this.providerDomain) u.searchParams.set("providerDomain", this.providerDomain);
-      if (this.token) u.searchParams.set("token", this.token);
-      return u.toString();
-    },
-    filteredBy(providers) {
-      const s = (this.query || "").toLowerCase();
-      return providers.filter(
-        (p) =>
-          p.name.toLowerCase().includes(s) || p.fqdn.toLowerCase().includes(s),
-      );
-    },
-    async goToManualProvider() {
-      const input = (this.manualProvider || "").trim();
-      if (!input) return;
-      try {
-        const target = await this.discoverProvider(input);
-        window.location.href = target;
-      } catch (e) {
-        // TODO: handle error and show error dialog to user
-        console.error(e);
-      }
-    },
-  },
-};
+	props: {
+		federations: { type: Object, default: () => ({}) },
+		providerDomain: { type: String, default: '' },
+		token: { type: String, default: '' },
+	},
+
+	data: () => ({ query: '', manualProvider: '' }),
+
+	computed: {
+		hasFederationData() {
+			return Object.keys(this.federations || {}).length > 0
+		},
+
+		visibleFederations() {
+			return Object.entries(this.federations || {}).reduce((groups, [federation, providers]) => {
+				const visibleProviders = this.filteredBy(providers)
+				if (visibleProviders.length > 0) {
+					groups.push({
+						federation,
+						providers: visibleProviders,
+					})
+				}
+				return groups
+			}, [])
+		},
+
+		hasVisibleProviders() {
+			return this.visibleFederations.length > 0
+		},
+	},
+
+	methods: {
+		async discoverProvider(base) {
+			const resp = await axios.get(generateUrl('/apps/contacts/discover'), {
+				params: { base },
+				timeout: 8000,
+			})
+			if (!resp.data?.inviteAcceptDialogAbsolute) {
+				throw new Error('Discovery failed')
+			}
+
+			// append provider & token safely
+			const u = new URL(resp.data.inviteAcceptDialogAbsolute)
+			if (this.providerDomain) {
+				u.searchParams.set('providerDomain', this.providerDomain)
+			}
+			if (this.token) {
+				u.searchParams.set('token', this.token)
+			}
+			return u.toString()
+		},
+
+		providerInviteUrl(providerEntry) {
+			const source = providerEntry?.inviteAcceptDialog || ''
+			if (!source) {
+				return ''
+			}
+			try {
+				const url = new URL(source, window.location.origin)
+				if (this.providerDomain) {
+					url.searchParams.set('providerDomain', this.providerDomain)
+				}
+				if (this.token) {
+					url.searchParams.set('token', this.token)
+				}
+				return url.toString()
+			} catch (error) {
+				return ''
+			}
+		},
+
+		filteredBy(providers) {
+			const s = (this.query || '').toLowerCase()
+			if (!Array.isArray(providers)) {
+				return []
+			}
+			return providers.reduce((list, providerEntry) => {
+				const name = String(providerEntry?.name || '')
+				const fqdn = String(providerEntry?.fqdn || '')
+				const inviteUrl = this.providerInviteUrl(providerEntry)
+				if (inviteUrl === '') {
+					return list
+				}
+				if (!name.toLowerCase().includes(s) && !fqdn.toLowerCase().includes(s)) {
+					return list
+				}
+				list.push({
+					...providerEntry,
+					name: name || fqdn,
+					fqdn,
+					inviteUrl,
+				})
+				return list
+			}, [])
+		},
+
+		async goToManualProvider() {
+			const input = (this.manualProvider || '').trim()
+			if (!input) {
+				return
+			}
+			try {
+				const target = await this.discoverProvider(input)
+				window.location.href = target
+			} catch (error) {
+				showError(this.t('contacts', 'Could not discover that provider. Check the address and try again.'))
+			}
+		},
+	},
+}
 </script>

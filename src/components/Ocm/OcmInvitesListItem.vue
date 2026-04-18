@@ -4,12 +4,13 @@
 -->
 <template>
 	<div class="contacts-list__item-wrapper">
-		<ListItem :id="id"
+		<ListItem
+			:id="id"
 			:key="source.key"
 			class="list-item-style envelope"
-			:name="source.recipientEmail"
-			:to="{ name: ROUTE_NAME_OCM_INVITE, params: { selectedInvite: source.key } }">
-		</ListItem>
+			:name="displayName"
+			:to="{ name: ROUTE_NAME_OCM_INVITE, params: { selectedInvite: source.key } }"
+			:data-testid="`ocm-invite-item-${source.token}`" />
 	</div>
 </template>
 
@@ -17,8 +18,8 @@
 import {
 	NcListItem as ListItem,
 } from '@nextcloud/vue'
-
-import { ROUTE_NAME_OCM_INVITE } from '../../models/constants'
+import { ROUTE_NAME_OCM_INVITE } from '../../models/constants.ts'
+import { getOcmInviteDisplayName } from '../../models/ocminvite.ts'
 
 export default {
 	name: 'OcmInvitesListItem',
@@ -28,19 +29,12 @@ export default {
 	},
 
 	props: {
-		index: {
-			type: Number,
-			required: true,
-		},
 		source: {
 			type: Object,
 			required: true,
 		},
-		reloadBus: {
-			type: Object,
-			required: true,
-		},
 	},
+
 	data() {
 		return {
 			ROUTE_NAME_OCM_INVITE,
@@ -50,13 +44,17 @@ export default {
 	computed: {
 		// usable and valid html id for scrollTo
 		id() {
-			return this.source.key.slice(0, -2)
+			// Token is UUID format, use with prefix for valid HTML ID
+			return `invite-${this.source.key}`
 		},
-	},
-	methods: {
+
+		displayName() {
+			return getOcmInviteDisplayName(this.source)
+		},
 	},
 }
 </script>
+
 <style lang="scss" scoped>
 
 .envelope {
@@ -83,6 +81,7 @@ export default {
 }
 
 </style>
+
 <style lang="scss">
 .contacts-list__item-wrapper {
 	&[draggable='true'] .avatardiv * {

@@ -5,21 +5,24 @@
 
 <template>
 	<div class="contact-header__infos">
-		<h5 class="">
-			{{ t('contacts', ' Accept exchange of contact info ?') }}
+		<h5>
+			{{ t('contacts', 'Accept an invite to exchange contact information') }}
 		</h5>
-		<p>{{ t('contacts', 'This will simplify federated sharing between you and the inviter.') }}</p>
-		<div class="invitation-token">
-			<label>Token</label><span style="margin: 05em;">{{ token }}</span>
-		</div>
-		<div class="invitation-provider">
-			<label>Provider</label><span style="margin: 05em;">{{ provider }}</span>
-		</div>
+		<p>{{ t('contacts', 'After you accept, both of you will appear in each other\'s contacts list and you can start sharing data with each other.') }}</p>
+		<dl class="invitation-details">
+			<dt>{{ t('contacts', 'Invite token') }}</dt>
+			<dd>
+				<code class="ocm-invite-token" data-testid="ocm-invite-accept-token">{{ token }}</code>
+			</dd>
+			<dt>{{ t('contacts', 'Cloud provider') }}</dt>
+			<dd>
+				<bdi class="ocm-provider-host" data-testid="ocm-invite-accept-provider">{{ provider }}</bdi>
+			</dd>
+		</dl>
 		<div class="actions">
 			<slot name="accept-invite-actions" />
 		</div>
 	</div>
-
 </template>
 
 <script>
@@ -29,25 +32,69 @@ export default {
 	props: {
 		token: {
 			type: String,
-			default: '',
 			required: true,
 		},
+
 		provider: {
 			type: String,
-			default: '',
 			required: true,
 		},
-	}
+	},
 }
 </script>
+
 <style lang="scss" scoped>
 .contact-header__infos {
-	margin: 1em;;
+	margin: 1em;
+
+	h5 {
+		margin: 0 0 0.5em 0;
+	}
+
+	> p {
+		margin-bottom: 1.5em;
+		color: var(--color-text-maxcontrast);
+	}
 }
-.invitation-token {
-	margin-top: 1em;
+
+.invitation-details {
+	margin: 0 0 1.5em 0;
+	padding: 1em;
+	background: var(--color-background-dark);
+	border-radius: var(--border-radius-large);
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	column-gap: 1em;
+	row-gap: 0.5em;
+	align-items: baseline;
+
+	dt {
+		font-weight: 500;
+		color: var(--color-text-maxcontrast);
+		text-align: start;
+	}
+
+	dd {
+		margin: 0;
+		margin-inline-start: 0;
+		min-width: 0;
+		overflow-wrap: anywhere;
+		text-align: start;
+	}
+
+	.ocm-invite-token {
+		font-family: monospace;
+	}
 }
-.invitation-provider {
-	margin-bottom: 1.3em;
+
+@media (max-width: 480px) {
+	.invitation-details {
+		grid-template-columns: 1fr;
+		row-gap: 0.25em;
+
+		dd {
+			margin-bottom: 0.5em;
+		}
+	}
 }
 </style>
