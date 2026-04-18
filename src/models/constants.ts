@@ -30,13 +30,18 @@ export const ROUTE_CIRCLE = 'circle'
 export const ROUTE_CHART = 'chart'
 export const ROUTE_USER_GROUP = 'user_group'
 
-const acceptInviteDialogUrl = loadState('contacts', 'acceptInviteDialogUrl', '')
+const acceptInviteDialogUrl = loadState('contacts', 'acceptInviteDialogUrl', '/ocm/invite-accept-dialog')
 export const ROUTE_INVITE_ACCEPT_DIALOG = acceptInviteDialogUrl
 export const ROUTE_NAME_INVITE_ACCEPT_DIALOG = 'invite_accept_dialog'
 export const ROUTE_ALL_OCM_INVITES = 'ocm-invites'
 export const ROUTE_NAME_ALL_OCM_INVITES = 'all_ocm_invites'
 export const ROUTE_NAME_OCM_INVITE = 'ocm_invite'
 export const GROUP_ALL_OCM_INVITES = t('contacts', 'All invites')
+export const OCM_INVITES_CONFIG_KEYS = {
+	optionalMail: 'ocm_invites_optional_mail',
+	ccSender: 'ocm_invites_cc_sender',
+	encodedCopyButton: 'ocm_invites_encoded_copy_button',
+} as const
 
 // Contact settings
 export const CONTACTS_SETTINGS: DefaultGroup = t('contacts', 'Contacts settings')

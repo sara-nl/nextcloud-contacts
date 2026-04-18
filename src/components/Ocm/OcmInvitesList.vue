@@ -7,26 +7,25 @@
 	<AppContentList class="content-list">
 		<div class="contacts-list__header">
 			<div class="search-contacts-field">
-				<input v-model="query" type="text" :placeholder="t('contacts', 'Search invites …')">
+				<input v-model="query" type="text" :placeholder="t('contacts', 'Search invites …')">
 			</div>
 		</div>
-		<VList v-slot="{ item, index }"
+		<VList
+			v-slot="{ item }"
 			ref="scroller"
 			class="contacts-list"
 			:data="filteredList">
-			<OcmInvitesListItem 
-				:index="index"
-				:source="item"
-				:reload-bus="reloadBus"
-			/>
+			<OcmInvitesListItem
+				:source="item" />
 		</VList>
 	</AppContentList>
 </template>
 
 <script>
 import { NcAppContentList as AppContentList } from '@nextcloud/vue'
-import OcmInvitesListItem from './OcmInvitesListItem.vue'
 import { VList } from 'virtua/vue'
+import OcmInvitesListItem from './OcmInvitesListItem.vue'
+import { getOcmInviteSearchData } from '../../models/ocminvite.ts'
 
 const _default = {
 	name: 'OcmInvitesList',
@@ -50,15 +49,10 @@ const _default = {
 			type: String,
 			default: '',
 		},
-		reloadBus: {
-			type: Object,
-			required: true,
-		},
 	},
 
 	data() {
 		return {
-			OcmInvitesListItem,
 			query: '',
 		}
 	},
@@ -72,10 +66,10 @@ const _default = {
 		},
 		filteredList() {
 			let invitesList = this.list
-				.filter(item => this.matchSearch(this.invites[item.key]))
-				.map(item => this.invites[item.key])
+				.filter((item) => this.matchSearch(this.invites[item.key]))
+				.map((item) => this.invites[item.key])
 
-			invitesList = invitesList.filter(item => item !== undefined)
+			invitesList = invitesList.filter((item) => item !== undefined)
 			return invitesList
 		},
 	},
@@ -109,23 +103,23 @@ const _default = {
 		 * @param {string} key the contact unique key
 		 */
 		scrollToInvite(key) {
-			const item = this.$el.querySelector('#' + btoa(key).slice(0, -2))
-
-			// if the item is not visible in the list or barely visible
-			if (!(item && item.getBoundingClientRect().y > 50)) { // header height
-				const index = this.list.findIndex(contact => contact.key === key)
-				if (index > -1) {
-					this.$refs.scroller.scrollToIndex(index)
-				}
+			const index = this.filteredList.findIndex((invite) => invite.key === key)
+			if (index < 0) {
+				return
 			}
 
-			// if item is a bit out (bottom) of the list, let's just scroll a bit to the top
-			if (item) {
-				const pos = item.getBoundingClientRect().y + this.itemHeight - (this.$el.offsetHeight + 50)
-				if (pos > 0) {
-					const scroller = this.$refs.scroller.$el
-					scroller.scrollToOffset(scroller.scrollTop + pos)
-				}
+			const item = this.$el.querySelector(`#invite-${key}`)
+			if (!item) {
+				this.$refs.scroller?.scrollToIndex(index)
+				return
+			}
+
+			const itemRect = item.getBoundingClientRect()
+			const listRect = this.$el.getBoundingClientRect()
+			const isAbove = itemRect.top < listRect.top + 50 // account for list header
+			const isBelow = itemRect.bottom > listRect.bottom
+			if (isAbove || isBelow) {
+				this.$refs.scroller?.scrollToIndex(index)
 			}
 		},
 
@@ -137,13 +131,13 @@ const _default = {
 		 */
 		matchSearch(invite) {
 			if (this.query.trim() !== '') {
-				return invite.searchData.toString().toLowerCase().search(this.query.trim().toLowerCase()) !== -1
+				return getOcmInviteSearchData(invite).toLowerCase().includes(this.query.trim().toLowerCase())
 			}
 			return true
 		},
 	},
 }
-export default _default;
+export default _default
 
 </script>
 

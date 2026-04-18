@@ -25,8 +25,7 @@
 					name: 'group',
 					params: { selectedGroup: GROUP_ALL_CONTACTS },
 				}"
-				:active="routeState === 'all'"
-				@click="updateRouteState('all')">
+				:active="routeState === 'all'">
 				<template #icon>
 					<IconContactFilled v-if="routeState === 'all'" :size="20" />
 					<IconContact v-else :size="20" />
@@ -48,8 +47,7 @@
 					params: { selectedChart: GROUP_ALL_CONTACTS },
 				}"
 				:active="routeState === 'orgchart'"
-				icon="icon-category-monitoring"
-				@click="updateRouteState('orgchart')" />
+				icon="icon-category-monitoring" />
 
 			<!-- Not grouped group -->
 			<AppNavigationItem
@@ -60,8 +58,7 @@
 					name: 'group',
 					params: { selectedGroup: GROUP_NO_GROUP_CONTACTS },
 				}"
-				:active="routeState === 'notgrouped'"
-				@click="updateRouteState('notgrouped')">
+				:active="routeState === 'notgrouped'">
 				<template #icon>
 					<IconUserFilled v-if="routeState === 'notgrouped'" :size="20" />
 					<IconUser v-else :size="20" />
@@ -82,8 +79,7 @@
 					name: 'group',
 					params: { selectedGroup: GROUP_RECENTLY_CONTACTED },
 				}"
-				:active="routeState === 'recentlycontacted'"
-				@click="updateRouteState('recentlycontacted')">
+				:active="routeState === 'recentlycontacted'">
 				<template #icon>
 					<IconRecentlyContacted :size="20" />
 				</template>
@@ -95,19 +91,20 @@
 			</AppNavigationItem>
 
 			<!-- All OCM invites -->
-			<AppNavigationItem v-if="isOcmInvitesEnabled"
+			<AppNavigationItem
+				v-if="isOcmInvitesEnabled"
 				id="ocm-invites"
 				:name="GROUP_ALL_OCM_INVITES"
 				:to="{
 					name: ROUTE_NAME_ALL_OCM_INVITES,
 				}"
-				:active="routeState === 'ocm-invites'"
-				@click="updateRouteState('ocm-invites')">
+				:active="routeState === 'ocm-invites'">
 				<template #icon>
 					<IconAccountSwitchOutline :size="20" />
 				</template>
 				<template #counter>
-					<NcCounterBubble v-if="ocmInvites.length"
+					<NcCounterBubble
+						v-if="ocmInvites.length"
 						:count="ocmInvites.length" />
 				</template>
 			</AppNavigationItem>
@@ -142,8 +139,7 @@
 				v-for="group in ellipsisGroupsMenu"
 				:key="group.key"
 				:route-state="routeState"
-				:group="group"
-				@update-route-state="updateRouteState" />
+				:group="group" />
 
 			<template v-if="isCirclesEnabled">
 				<!-- Toggle groups ellipsis -->
@@ -178,8 +174,7 @@
 					<CircleNavigationItem
 						v-for="circle in ellipsisCirclesMenu"
 						:key="circle.key"
-						:circle="circle"
-						@click="updateRouteState(`circle:${circle.id}`)" />
+						:circle="circle" />
 
 					<!-- Toggle circles ellipsis -->
 					<AppNavigationItem
@@ -219,8 +214,6 @@
 <script>
 import { showError } from '@nextcloud/dialogs'
 import { emit } from '@nextcloud/event-bus'
-import { CHART_ALL_CONTACTS, CIRCLE_DESC, CONTACTS_SETTINGS, ELLIPSIS_COUNT, GROUP_ALL_CONTACTS, GROUP_NO_GROUP_CONTACTS, GROUP_RECENTLY_CONTACTED, GROUP_ALL_OCM_INVITES, ROUTE_NAME_ALL_OCM_INVITES } from '../../models/constants.ts'
-
 import {
 	NcActionInput as ActionInput,
 	NcActionText as ActionText,
@@ -238,6 +231,7 @@ import IconUserFilled from 'vue-material-design-icons/Account.vue'
 import IconContactFilled from 'vue-material-design-icons/AccountMultiple.vue'
 import IconContact from 'vue-material-design-icons/AccountMultipleOutline.vue'
 import IconUser from 'vue-material-design-icons/AccountOutline.vue'
+import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import IconError from 'vue-material-design-icons/AlertCircleOutline.vue'
 import Cog from 'vue-material-design-icons/CogOutline.vue'
 import IconAdd from 'vue-material-design-icons/Plus.vue'
@@ -247,11 +241,12 @@ import CircleNavigationItem from './CircleNavigationItem.vue'
 import ContactsSettings from './ContactsSettings.vue'
 import GroupNavigationItem from './GroupNavigationItem.vue'
 import RouterMixin from '../../mixins/RouterMixin.js'
+import { CHART_ALL_CONTACTS, CIRCLE_DESC, CONTACTS_SETTINGS, ELLIPSIS_COUNT, GROUP_ALL_CONTACTS, GROUP_ALL_OCM_INVITES, GROUP_NO_GROUP_CONTACTS, GROUP_RECENTLY_CONTACTED, ROUTE_NAME_ALL_OCM_INVITES } from '../../models/constants.ts'
 import isCirclesEnabled from '../../services/isCirclesEnabled.js'
 import isContactsInteractionEnabled from '../../services/isContactsInteractionEnabled.js'
-import useUserGroupStore from '../../store/userGroup.ts'
-import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import isOcmInvitesEnabled from '../../services/isOcmInvitesEnabled.js'
+import useOcmInvitesStore from '../../store/ocminvites.ts'
+import useUserGroupStore from '../../store/userGroup.ts'
 
 export default {
 	name: 'RootNavigation',
@@ -351,8 +346,9 @@ export default {
 		userGroups() {
 			return this.userGroupStore.userGroupList
 		},
+
 		ocmInvites() {
-			return this.$store.getters.getSortedOcmInvites
+			return this.ocminvitesStore.sortedOcmInvites
 		},
 
 		// list all the contacts that doesn't have a group
@@ -450,10 +446,47 @@ export default {
 				: t('contacts', 'Collapse teams')
 		},
 
-		...mapStores(useUserGroupStore),
+		...mapStores(useOcmInvitesStore, useUserGroupStore),
+	},
+
+	watch: {
+		$route: {
+			immediate: true,
+			handler(route) {
+				this.routeState = this.getRouteStateFromRoute(route)
+			},
+		},
 	},
 
 	methods: {
+		getRouteStateFromRoute(route) {
+			const routeName = route?.name
+			if (routeName === ROUTE_NAME_ALL_OCM_INVITES || routeName === 'ocm_invite') {
+				return 'ocm-invites'
+			}
+			if (routeName === 'chart') {
+				return 'orgchart'
+			}
+			if (routeName === 'circle' && route?.params?.selectedCircle) {
+				return `circle:${route.params.selectedCircle}`
+			}
+			if (routeName === 'user_group' && route?.params?.selectedUserGroup) {
+				return `circle:${route.params.selectedUserGroup}`
+			}
+
+			const selectedGroup = route?.params?.selectedGroup
+			if (selectedGroup === GROUP_NO_GROUP_CONTACTS) {
+				return 'notgrouped'
+			}
+			if (selectedGroup === GROUP_RECENTLY_CONTACTED) {
+				return 'recentlycontacted'
+			}
+			if (typeof selectedGroup === 'string' && selectedGroup !== '' && selectedGroup !== GROUP_ALL_CONTACTS) {
+				return `group:${selectedGroup.replace(' ', '_')}`
+			}
+			return 'all'
+		},
+
 		toggleNewGroupMenu() {
 			this.isNewGroupMenuOpen = !this.isNewGroupMenuOpen
 		},
@@ -538,10 +571,6 @@ export default {
 		 */
 		showContactsSettings() {
 			this.showSettings = true
-		},
-
-		updateRouteState(state) {
-			this.routeState = state
 		},
 	},
 }

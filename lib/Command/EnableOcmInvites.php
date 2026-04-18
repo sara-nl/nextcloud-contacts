@@ -2,11 +2,14 @@
 
 /**
  * SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
- * SPDX-License-Identifier: AGPL-3.0-only
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Contacts\Command;
 
+use OCA\Contacts\AppInfo\Application;
+use OCA\Contacts\ConfigLexicon;
+use OCA\Contacts\Service\FederatedInvitesService;
 use OCP\IAppConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,22 +22,28 @@ class EnableOcmInvites extends Command {
 		parent::__construct();
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			->setName('contacts:enable-ocm-invites')
 			->setDescription('Enable OCM Invites.');
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$isAlreadyEnabled = $this->appConfig->getValueBool('contacts', 'ocm_invites_enabled');
+		$isAlreadyEnabled = $this->appConfig->getValueBool(Application::APP_ID, ConfigLexicon::OCM_INVITES_ENABLED);
 
 		if ($isAlreadyEnabled) {
 			$output->writeln('OCM Invites already enabled.');
 			return self::SUCCESS;
 		}
 
-		$this->appConfig->setValueBool('contacts', 'ocm_invites_enabled', true);
-		$this->appConfig->setValueString('core', 'ocm_invite_accept_dialog', 'contacts.federated_invites.invite_accept_dialog');
+		$this->appConfig->setValueBool(Application::APP_ID, ConfigLexicon::OCM_INVITES_ENABLED, true);
+		$this->appConfig->setValueString(
+			'core',
+			FederatedInvitesService::CORE_OCM_INVITE_ACCEPT_DIALOG_KEY,
+			FederatedInvitesService::OCM_INVITE_ACCEPT_DIALOG_ROUTE_NAME,
+		);
 
 		$output->writeln('OCM Invites successfully enabled.');
 		return self::SUCCESS;
