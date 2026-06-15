@@ -13,12 +13,11 @@ use OCA\Contacts\ConfigLexicon;
 use OCA\Contacts\MeshProvidersCache;
 use OCA\Contacts\WayfProvider;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
 
-class UpdateOcmProviders extends TimedJob {
-	// Run every 24 hours
-	private int $expire_time = 60 * 60;
+class UpdateDeltaOcmProviders extends TimedJob {
+	// Run every 15 minutes
+	private int $expire_time = 60 * 15;
 
 	public function __construct(
 		ITimeFactory $time,
@@ -27,12 +26,11 @@ class UpdateOcmProviders extends TimedJob {
 	) {
 		parent::__construct($time);
 		$this->setInterval($this->expire_time);
-		$this->setTimeSensitivity(IJob::TIME_INSENSITIVE);
 	}
 
 	#[\Override]
 	protected function run($argument) {
-		$this->wayfProvider->updateMeshProvidersCache(ConfigLexicon::FEDERATIONS_CACHE_EXPIRES);
-		$this->cache->setExpirationTime(ConfigLexicon::FEDERATIONS_CACHE_EXPIRES, time() + $this->expire_time);
+		$this->wayfProvider->updateMeshProvidersCache(ConfigLexicon::FEDERATIONS_CACHE_DELTA_EXPIRES);
+		$this->cache->setExpirationTime(ConfigLexicon::FEDERATIONS_CACHE_DELTA_EXPIRES, time() + $this->expire_time);
 	}
 }

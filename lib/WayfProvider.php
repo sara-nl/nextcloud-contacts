@@ -29,22 +29,32 @@ class WayfProvider {
 		private LoggerInterface $logger,
 		private IOCMDiscoveryService $discovery,
 		private IURLGenerator $urlGenerator,
+		private MeshProvidersCache $meshProvidersCache,
 	) {
 	}
 
 	/**
-	 * Returns all providers from the mesh Directory Service.
+	 * Updates the mesh providers cache by consulting the mesh directory service.
+	 * Complete refresh or only update cache with new/removed providers depends on the cache expiration time key specified.
 	 *
+	 * The providers are retrieved from the mesh directory service.
 	 * @see https://datatracker.ietf.org/doc/html/draft-ietf-ocm-open-cloud-mesh-04#name-appendix-c-directory-servic
 	 *
-	 * @return array an array containing all mesh providers
+	 * @param string $cacheExpirationTimeKey
+	 * @return void
 	 */
-	public function getMeshProviders(): array {
+	public function updateMeshProvidersCache(string $cacheExpirationTimeKey): void {
+		// determine whether to do a complete refresh
+		$refresh = false;
+		if ($cacheExpirationTimeKey === ConfigLexicon::FEDERATIONS_CACHE_EXPIRES && $this->meshProvidersCache->hasExpired(ConfigLexicon::FEDERATIONS_CACHE_EXPIRES)) {
+			$refresh = true;
+		}
+
+		$federationsCache = $this->meshProvidersCache->getFederations();
 		$urls = preg_split('/\s+/', trim($this->appConfig->getValueString(Application::APP_ID, ConfigLexicon::MESH_PROVIDERS_SERVICE)));
 		$federations = [];
 		$ourServerUrlParts = parse_url($this->urlGenerator->getAbsoluteUrl('/'));
 		$ourFqdn = is_array($ourServerUrlParts) && isset($ourServerUrlParts['host']) ? (string)$ourServerUrlParts['host'] : '';
-
 		$found = [];
 		foreach ($urls as $url) {
 			if ($url === '') {
@@ -54,6 +64,7 @@ class WayfProvider {
 				$res = $this->httpClient->newClient()->get($url);
 				$code = $res->getStatusCode();
 				if (!($code >= Http::STATUS_OK && $code < Http::STATUS_BAD_REQUEST)) {
+					$this->logger->error("Unable to retrieve providers from service at $url. Status returned was: " . $code, ['app' => Application::APP_ID]);
 					continue;
 				}
 				$data = json_decode($res->getBody(), true);
@@ -73,24 +84,33 @@ class WayfProvider {
 					if (($ourFqdn !== '' && $ourFqdn === $fqdn) || in_array($fqdn, $found, true)) {
 						continue;
 					}
-					try {
-						$disc = $this->discovery->discover($providerUrl, true);
-						$inviteAcceptDialog = $disc->getInviteAcceptDialog();
-					} catch (Exception $e) {
-						$this->logger->error('Discovery failed for ' . $providerUrl . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
-						continue;
+					$cachedProvider = $this->getProviderFromCache($fqdn);
+
+					// allways discover a new provider
+					if (empty($cachedProvider) || $refresh) {
+						$inviteAcceptDialog = '';
+						try {
+							$disc = $this->discovery->discover($providerUrl, true);
+							$inviteAcceptDialog = $disc->getInviteAcceptDialog();
+						} catch (Exception $e) {
+							$this->logger->error('Discovery failed for ' . $providerUrl . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
+							continue;
+						}
+						if ($inviteAcceptDialog === '') {
+							// We fall back on Nextcloud default path
+							$inviteAcceptDialogPath = self::getInviteAcceptDialogPath();
+							$inviteAcceptDialog = rtrim($providerUrl, '/') . $inviteAcceptDialogPath;
+						}
+						$federations[$fed][] = [
+							'provider' => $disc->getProvider(),
+							'name' => (string)($prov['displayName'] ?? $fqdn),
+							'fqdn' => $fqdn,
+							'inviteAcceptDialog' => $inviteAcceptDialog,
+						];
+					} else {
+						// used cached data
+						$federations[$fed][] = $cachedProvider;
 					}
-					if ($inviteAcceptDialog === '') {
-						// We fall back on Nextcloud default path
-						$inviteAcceptDialogPath = self::getInviteAcceptDialogPath();
-						$inviteAcceptDialog = rtrim($providerUrl, '/') . $inviteAcceptDialogPath;
-					}
-					$federations[$fed][] = [
-						'provider' => $disc->getProvider(),
-						'name' => (string)($prov['displayName'] ?? $fqdn),
-						'fqdn' => $fqdn,
-						'inviteAcceptDialog' => $inviteAcceptDialog,
-					];
 					array_push($found, $fqdn);
 				}
 				usort($federations[$fed], fn ($a, $b) => strcmp($a['name'], $b['name']));
@@ -98,25 +118,36 @@ class WayfProvider {
 				$this->logger->error('Fetch failed for ' . $url . ': ' . $e->getMessage(), ['app' => Application::APP_ID]);
 			}
 		}
-		return $federations;
+		$this->meshProvidersCache->setFederations($federations);
 	}
 
 	/**
-	 * Returns all mesh providers from cache if possible.
+	 * Return the provider with the specified fqdn from the cache.
 	 *
-	 * @return array an array containing all mesh providers
+	 * @param string $fqdn
+	 * @return array
 	 */
-	public function getMeshProvidersFromCache(): array {
-		$data = $this->appConfig->getValueArray(Application::APP_ID, ConfigLexicon::FEDERATIONS_CACHE, [], true);
-		$expires = is_array($data) && array_key_exists('expires', $data) ? (int)$data['expires'] : 0;
-		if (is_array($data) && $expires > time()) {
-			$this->logger->debug('Cache hit, expires at: ' . $expires, ['app' => Application::APP_ID]);
-			unset($data['expires']);
-			return $data;
-		}
+	private function getProviderFromCache(string $fqdn = ''): array {
+		$federations = $this->meshProvidersCache->getFederations();
+		$providerFound = null;
+		array_find($federations, function ($mesh) use ($fqdn, &$providerFound) {
+			if ($providerFound === null) {
+				$providerFound = array_find($mesh, function ($provider) use ($fqdn) {
+					return $provider['fqdn'] == $fqdn ? $provider['fqdn'] : null;
+				});
+			}
+			return $providerFound;
+		});
+		return $providerFound === null ? [] : $providerFound;
+	}
 
-		$this->logger->debug('Cache miss or expired: cron job should update providers.', ['app' => Application::APP_ID]);
-		return $this->getMeshProviders();
+	/**
+	 * Return the providers from the cache.
+	 *
+	 * @return array
+	 */
+	public function getMeshProviders(): array {
+		return $this->meshProvidersCache->getFederations();
 	}
 
 	/**

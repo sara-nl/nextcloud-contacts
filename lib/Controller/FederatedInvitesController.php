@@ -689,7 +689,7 @@ class FederatedInvitesController extends Controller {
 		Util::addScript(Application::APP_ID, 'contacts-wayf');
 		Util::addStyle(Application::APP_ID, 'contacts-wayf');
 		try {
-			$federations = $this->wayfProvider->getMeshProvidersFromCache();
+			$federations = $this->wayfProvider->getMeshProviders();
 			$providerDomain = trim((string)$this->request->getParam('providerDomain', ''));
 			if ($providerDomain === '') {
 				$baseHost = parse_url($this->urlGenerator->getBaseUrl(), PHP_URL_HOST);

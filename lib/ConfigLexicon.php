@@ -32,6 +32,8 @@ class ConfigLexicon implements ILexicon {
 	public const MESH_PROVIDERS_SERVICE = 'mesh_providers_service';
 	public const WAYF_ENDPOINT = 'wayf_endpoint';
 	public const FEDERATIONS_CACHE = 'federations_cache';
+	public const FEDERATIONS_CACHE_EXPIRES = 'expires';
+	public const FEDERATIONS_CACHE_DELTA_EXPIRES = 'delta_expires';
 
 	#[\Override]
 	public function getStrictness(): Strictness {
@@ -97,6 +99,20 @@ class ConfigLexicon implements ILexicon {
 				defaultRaw: [],
 				definition: 'Internal cron-maintained cache for discovered federations and expiry metadata.',
 				flags: IAppConfig::FLAG_SENSITIVE,
+				lazy: true,
+			),
+			new Entry(
+				self::FEDERATIONS_CACHE_EXPIRES,
+				ValueType::INT,
+				defaultRaw: 0,
+				definition: 'Federations cache refresh expiration time.',
+				lazy: true,
+			),
+			new Entry(
+				self::FEDERATIONS_CACHE_DELTA_EXPIRES,
+				ValueType::INT,
+				defaultRaw: 0,
+				definition: 'Federations cache update (delta) expiration time.',
 				lazy: true,
 			),
 		];

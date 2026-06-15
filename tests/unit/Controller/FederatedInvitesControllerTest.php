@@ -134,23 +134,15 @@ class FederatedInvitesControllerTest extends TestCase {
 			$this->defaults,
 			$this->mapper,
 			$this->invitesService,
-			$this->appManager,
 			$this->httpClient,
-			$this->config,
 			$this->initialState,
-			$this->languageFactory,
-			$this->contactsManager,
 			$this->mailer,
 			$this->discovery,
 			$this->userSession,
 			$this->wayfProvider,
-			$this->socialApi,
 			$this->timeFactory,
-			$this->compareVersion,
-			$this->groupSharingService,
 			$this->l10n,
 			$this->urlGenerator,
-			$this->userManager,
 			$this->logger,
 		);
 	}
@@ -772,7 +764,7 @@ class FederatedInvitesControllerTest extends TestCase {
 			->with('providerDomain', '')
 			->willReturn('sender.example');
 		$this->wayfProvider->expects($this->once())
-			->method('getMeshProvidersFromCache')
+			->method('getMeshProviders')
 			->willReturn(['mesh' => []]);
 		$this->urlGenerator->expects($this->never())->method('getBaseUrl');
 		$this->initialState->expects($this->once())
@@ -794,7 +786,7 @@ class FederatedInvitesControllerTest extends TestCase {
 			->with('providerDomain', '')
 			->willReturn('');
 		$this->wayfProvider->expects($this->once())
-			->method('getMeshProvidersFromCache')
+			->method('getMeshProviders')
 			->willReturn(['mesh' => []]);
 		$this->urlGenerator->expects($this->once())
 			->method('getBaseUrl')
