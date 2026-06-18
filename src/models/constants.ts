@@ -36,7 +36,8 @@ export const ROUTE_NAME_INVITE_ACCEPT_DIALOG = 'invite_accept_dialog'
 export const ROUTE_ALL_OCM_INVITES = 'ocm-invites'
 export const ROUTE_NAME_ALL_OCM_INVITES = 'all_ocm_invites'
 export const ROUTE_NAME_OCM_INVITE = 'ocm_invite'
-export const GROUP_ALL_OCM_INVITES = t('contacts', 'All invites')
+export const SECTION_EXTERNAL_INVITATIONS = t('contacts', 'External invitations')
+export const GROUP_ALL_OCM_INVITES = t('contacts', 'All invitations')
 export const OCM_INVITES_CONFIG_KEYS = {
 	optionalMail: 'ocm_invites_optional_mail',
 	ccSender: 'ocm_invites_cc_sender',

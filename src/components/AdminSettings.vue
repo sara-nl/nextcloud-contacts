@@ -16,7 +16,7 @@
 			<label for="allow-social-sync">{{ t('contacts', 'Allow updating avatars from social media') }}</label>
 		</p>
 
-		<h3>{{ t('contacts', 'OCM invites') }}</h3>
+		<h3>{{ t('contacts', 'External invitations') }}</h3>
 		<p>
 			<input
 				id="ocm-invites-optional-mail"
