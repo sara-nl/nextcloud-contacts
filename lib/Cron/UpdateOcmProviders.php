@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -16,6 +16,13 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
 
+/**
+ * This job runs periodically to do a complete refresh of the list of providers in the mesh providers cache.
+ * The update is specified as follows:
+ *  - Retrieve the current list of providers from each Mesh Directory Service and update the cache to keep that list.
+ *    (Mesh Directory Services are specified as value, a string of url's separated by commas, of the 'mesh_providers_service' config key)
+ *  - Additionally, do a discovery on all providers and update the cache with the result.
+ */
 class UpdateOcmProviders extends TimedJob {
 	// Run every 24 hours
 	private int $expire_time = 60 * 60;

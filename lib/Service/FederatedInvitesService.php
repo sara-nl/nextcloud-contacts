@@ -1,7 +1,7 @@
 <?php
 
 /**
- * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -10,7 +10,7 @@ namespace OCA\Contacts\Service;
 use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\ConfigLexicon;
 use OCA\Contacts\Db\FederatedInviteMapper;
-use OCA\Contacts\Exception\ContactExistsException;
+use OCA\Contacts\Exception\ContactAlreadyExistsException;
 use OCA\DAV\CardDAV\CardDavBackend;
 use OCA\FederatedFileSharing\AddressHandler;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -131,7 +131,7 @@ class FederatedInvitesService {
 	 *
 	 * @return string the ref of the new contact in the form
 	 *                'contactURI~addressBookUri'
-	 * @throws ContactExistsException
+	 * @throws ContactAlreadyExistsException
 	 */
 	public function createNewContact(string $cloudId, string $email, string $name, ?string $userId): ?string {
 		$localUserId = $userId ? $userId : $this->userSession->getUser()->getUID();
@@ -180,29 +180,25 @@ class FederatedInvitesService {
 			$invitation = $this->federatedInviteMapper->findByToken($token);
 		} catch (DoesNotExistException) {
 			$response = ['message' => 'Invalid or non existing token', 'error' => true];
-			$status = Http::STATUS_BAD_REQUEST;
-			$response = new JSONResponse($response, $status);
+			$response = new JSONResponse($response, Http::STATUS_BAD_REQUEST);
 			$response->throttle();
 			return $response;
 		}
 
 		if ($invitation->isAccepted() === true) {
 			$response = ['message' => 'Invite already accepted', 'error' => true];
-			$status = Http::STATUS_CONFLICT;
-			return new JSONResponse($response, $status);
+			return new JSONResponse($response, Http::STATUS_CONFLICT);
 		}
 
 		if ($invitation->getExpiredAt() !== null && $updated > $invitation->getExpiredAt()) {
 			$response = ['message' => 'Invitation expired', 'error' => true];
-			$status = Http::STATUS_BAD_REQUEST;
-			return new JSONResponse($response, $status);
+			return new JSONResponse($response, Http::STATUS_BAD_REQUEST);
 		}
 		// Note that there is no user session; local user is the sender of the invite
 		$localUser = $this->userManager->get($invitation->getUserId());
 		if ($localUser === null) {
 			$response = ['message' => 'Invalid or non existing token', 'error' => true];
-			$status = Http::STATUS_BAD_REQUEST;
-			$response = new JSONResponse($response, $status);
+			$response = new JSONResponse($response, Http::STATUS_BAD_REQUEST);
 			$response->throttle();
 			return $response;
 		}
@@ -210,8 +206,7 @@ class FederatedInvitesService {
 		$sharedFromEmail = $localUser->getEMailAddress();
 		if ($sharedFromEmail === null) {
 			$response = ['message' => 'Invalid or non existing token', 'error' => true];
-			$status = Http::STATUS_BAD_REQUEST;
-			$response = new JSONResponse($response, $status);
+			$response = new JSONResponse($response, Http::STATUS_BAD_REQUEST);
 			$response->throttle();
 			return $response;
 		}
@@ -240,7 +235,7 @@ class FederatedInvitesService {
 					'error' => true,
 				], Http::STATUS_INTERNAL_SERVER_ERROR);
 			}
-		} catch (ContactExistsException $e) {
+		} catch (ContactAlreadyExistsException $e) {
 			// A duplicate sender-side contact should not block invite acceptance.
 			$this->logger->info("Contact with cloud id $cloudId already exists. ");
 		}

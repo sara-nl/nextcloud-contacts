@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * SPDX-FileCopyrightText: 2020 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -12,7 +14,7 @@ use GuzzleHttp\Exception\RequestException;
 use OCA\Contacts\AppInfo\Application;
 use OCA\Contacts\Db\FederatedInvite;
 use OCA\Contacts\Db\FederatedInviteMapper;
-use OCA\Contacts\Exception\ContactExistsException;
+use OCA\Contacts\Exception\ContactAlreadyExistsException;
 use OCA\Contacts\Service\FederatedInvitesService;
 use OCA\Contacts\WayfProvider;
 use OCA\FederatedFileSharing\AddressHandler;
@@ -389,7 +391,7 @@ class FederatedInvitesController extends Controller {
 				$this->logger->error('Provider: ' . $provider . ' does not support invites.', ['app' => Application::APP_ID]);
 				return new JSONResponse(['message' => 'Provider: ' . $provider . ' does not support invites.'], Http::STATUS_BAD_REQUEST);
 			}
-		} catch (ContactExistsException $e) {
+		} catch (ContactAlreadyExistsException $e) {
 			return new JSONResponse(['message' => 'Contact with cloudID ' . $cloudId . ' already exists.'], Http::STATUS_CONFLICT);
 		} catch (RequestException $e) { // this should catch OCM API request exceptions
 			$this->logger->error('/invite-accepted returned an error: ' . $e->getMessage(), ['app' => Application::APP_ID]);

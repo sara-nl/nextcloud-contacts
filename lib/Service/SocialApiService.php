@@ -11,7 +11,7 @@ namespace OCA\Contacts\Service;
 
 use Exception;
 use OCA\Contacts\AppInfo\Application;
-use OCA\Contacts\Exception\ContactExistsException;
+use OCA\Contacts\Exception\ContactAlreadyExistsException;
 use OCA\Contacts\Service\Social\CompositeSocialProvider;
 use OCA\DAV\CardDAV\CardDavBackend;
 use OCA\DAV\CardDAV\ContactsManager;
@@ -24,7 +24,6 @@ use OCP\Http\Client\IClientService;
 use OCP\IAddressBook;
 use OCP\IConfig;
 use OCP\ICreateContactFromString;
-use OCP\IL10N;
 use OCP\IURLGenerator;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -45,7 +44,6 @@ class SocialApiService {
 		private IManager $manager,
 		private IConfig $config,
 		private IClientService $clientService,
-		private IL10N $l10n,
 		private IURLGenerator $urlGen,
 		private ITimeFactory $timeFactory,
 		private ImageResizer $imageResizer,
@@ -247,7 +245,7 @@ class SocialApiService {
 	 * @param {string} email the email of the contact
 	 * @param {string} name the name of the contact
 	 * @param {string} userId the uid of the local user
-	 * @throws ContactExistsException
+	 * @throws ContactAlreadyExistsException
 	 */
 	public function createContact(string $cloudId, string $email, string $name, string $userId): ?array {
 		try {
@@ -255,11 +253,11 @@ class SocialApiService {
 			$cm = $this->serverContainer->get(ContactsManager::class);
 			$cm->setupContactsProvider($this->manager, $userId, $this->urlGen);
 
-			// if contact already exists we throw ContactExistsException
+			// if contact already exists we throw ContactAlreadyExistsException
 			$searchResult = $this->manager->search($cloudId, ['CLOUD']);
 			if (count($searchResult) > 0) {
 				$this->logger->info('Contact with cloud id ' . $cloudId . ' already exists.', ['app' => Application::APP_ID]);
-				throw new ContactExistsException('Contact with cloud id ' . $cloudId . ' already exists.');
+				throw new ContactAlreadyExistsException('Contact with cloud id ' . $cloudId . ' already exists.');
 			}
 
 			$addressBook = $this->pickAddressBookForContactCreation($this->manager->getUserAddressBooks());
@@ -278,7 +276,7 @@ class SocialApiService {
 			);
 			$newContact['ADDRESSBOOK_URI'] = $addressBook->getUri();
 			return $newContact;
-		} catch (ContactExistsException $e) {
+		} catch (ContactAlreadyExistsException $e) {
 			throw $e;
 		} catch (Exception $e) {
 			$this->logger->error('An exception occurred creating a new contact: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
@@ -329,7 +327,7 @@ class SocialApiService {
 			);
 			return $newContact;
 		} catch (Exception $e) {
-			$this->logger->error('An exception occurred creating a federated contact: ' . $e->getTraceAsString(), ['app' => Application::APP_ID]);
+			$this->logger->error('An exception occurred creating a federated contact: ' . $e->getMessage(), ['exception' => $e]);
 		}
 		return null;
 	}
