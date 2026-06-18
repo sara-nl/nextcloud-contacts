@@ -201,8 +201,8 @@ export default {
 	}
 
 	.email-section {
-		padding: 1em;
-		background: var(--color-background-dark);
+		padding: calc(var(--default-grid-baseline) * 2);
+		border: 1px solid var(--color-border);
 		border-radius: var(--border-radius-large);
 		margin-bottom: 1.5em;
 
@@ -210,10 +210,10 @@ export default {
 		.cc-toggle {
 			display: flex;
 			align-items: center;
-			gap: 0.5em;
+			gap: calc(var(--default-grid-baseline) * 2);
 			cursor: pointer;
 			user-select: none;
-			margin-bottom: 0.5em;
+			margin-bottom: calc(var(--default-grid-baseline) * 2);
 
 			input[type="checkbox"] {
 				width: 18px;
@@ -221,18 +221,13 @@ export default {
 				cursor: pointer;
 				accent-color: var(--color-primary);
 			}
-
-			span {
-				font-weight: 500;
-			}
 		}
 
 		.cc-toggle {
-			margin-top: 0.5em;
+			margin-top: calc(var(--default-grid-baseline) * 2);
 			margin-bottom: 0;
 
 			span {
-				font-weight: normal;
 				font-size: 0.9em;
 			}
 		}
@@ -240,12 +235,12 @@ export default {
 		.email-fields {
 			display: flex;
 			flex-direction: column;
-			gap: 1em;
-			margin-top: 1em;
+			gap: calc(var(--default-grid-baseline) * 2);
+			margin-top: calc(var(--default-grid-baseline) * 2);
 		}
 
 		.hint {
-			margin-top: 0.5em;
+			margin-top: calc(var(--default-grid-baseline) * 2);
 		}
 	}
 
