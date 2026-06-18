@@ -9,8 +9,8 @@
 		<NcEmptyContent
 			v-if="!invite"
 			class="empty-content"
-			:name="t('contacts', 'No invite selected')"
-			:description="t('contacts', 'Select an invite on the list to begin')">
+			:name="t('contacts', 'No invitation selected')"
+			:description="t('contacts', 'Select an invitation on the list to begin')">
 			<template #icon>
 				<IconAccountSwitchOutline :size="20" />
 			</template>
@@ -18,7 +18,7 @@
 
 		<template v-else>
 			<div class="invite-details">
-				<h2>{{ t('contacts', 'OCM invite') }}</h2>
+				<h2>{{ t('contacts', 'Invitation') }}</h2>
 
 				<div class="invite-info">
 					<div v-if="invite.recipientName" class="info-row">
@@ -60,7 +60,7 @@
 						@copy="onCopyAction" />
 				</details>
 				<div v-else class="share-section" data-testid="ocm-invite-share-section">
-					<h3>{{ t('contacts', 'Share invite') }}</h3>
+					<h3>{{ t('contacts', 'Share invitation') }}</h3>
 					<p class="share-hint">
 						{{ t('contacts', 'The invite link is the easiest way to share. Invite codes like token@provider are for manual acceptance.') }}
 					</p>
@@ -76,8 +76,16 @@
 				<!-- Action buttons -->
 				<div class="action-buttons">
 					<NcButton
+						variant="error"
+						class="action-buttons__revoke"
+						data-testid="ocm-invite-revoke-btn"
+						@click="onRevoke">
+						{{ t('contacts', 'Revoke invitation') }}
+					</NcButton>
+					<NcButton
 						v-if="invite.recipientEmail"
 						variant="primary"
+						class="action-buttons__primary"
 						data-testid="ocm-invite-resend-btn"
 						@click="onResend">
 						<template #icon>
@@ -88,18 +96,13 @@
 					<NcButton
 						v-else
 						variant="primary"
+						class="action-buttons__primary"
 						data-testid="ocm-invite-attach-email-btn"
 						@click="openAttachEmailForm">
 						<template #icon>
 							<EmailFastOutlineIcon :size="20" />
 						</template>
 						{{ t('contacts', 'Send via email') }}
-					</NcButton>
-					<NcButton
-						variant="error"
-						data-testid="ocm-invite-revoke-btn"
-						@click="onRevoke">
-						{{ t('contacts', 'Revoke invite') }}
 					</NcButton>
 				</div>
 			</div>
@@ -108,7 +111,7 @@
 		<Modal
 			v-if="showAttachEmailForm"
 			v-model:show="showAttachEmailForm"
-			:name="t('contacts', 'Send invite via email')"
+			:name="t('contacts', 'Send invitation via email')"
 			:no-close="submittingAttachEmail">
 			<OcmAttachEmailForm
 				:loading="submittingAttachEmail"
@@ -380,14 +383,14 @@ export default {
 
 .share-section {
 	margin-bottom: 1.5em;
-	padding: 1em;
-	background: var(--color-background-dark);
+	padding: calc(var(--default-grid-baseline) * 2);
+	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
 
 	.share-hint {
 		font-size: 0.85em;
 		color: var(--color-text-maxcontrast);
-		margin-bottom: 0.75em;
+		margin: 0 0 0.75em 0;
 	}
 }
 
@@ -444,10 +447,24 @@ export default {
 
 .action-buttons {
 	display: flex;
-	gap: 0.5em;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75em;
 
-	@media (max-width: 400px) {
+	.action-buttons__primary {
+		margin-inline-start: auto;
+	}
+
+	@media (max-width: 480px) {
 		flex-direction: column;
+		align-items: stretch;
+
+		.action-buttons__primary,
+		.action-buttons__revoke {
+			margin-inline-start: 0;
+			width: 100%;
+		}
 	}
 }
 </style>
