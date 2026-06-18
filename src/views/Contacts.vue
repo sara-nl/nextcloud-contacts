@@ -9,8 +9,11 @@
 		<RootNavigation
 			:contacts-list="contactsList"
 			:loading="loadingContacts || loadingCircles || loadingInvites"
+			:invite-actions-enabled="!!defaultAddressbook"
 			:selected-group="selectedGroup"
-			:selected-contact="selectedContact">
+			:selected-contact="selectedContact"
+			@open-create-invite="newInvite"
+			@open-accept-invite="manualInviteAccept">
 			<div class="import-and-new-contact-buttons">
 				<SettingsImportContacts v-if="!loadingContacts && isEmptyGroup && !isChartView && !isCirclesView" />
 				<!-- new-contact-button -->
@@ -24,30 +27,6 @@
 						<IconAdd :size="20" />
 					</template>
 					{{ isCirclesView ? t('contacts', 'Add member') : t('contacts', 'New contact') }}
-				</NcButton>
-				<!-- invite-contact-button -->
-				<NcButton
-					v-if="isOcmInvitesEnabled && !loadingInvites"
-					variant="secondary"
-					wide
-					:disabled="!defaultAddressbook"
-					@click="newInvite">
-					<template #icon>
-						<IconAccountSwitchOutline :size="20" />
-					</template>
-					{{ t('contacts', 'Invite contact') }}
-				</NcButton>
-				<!-- accept-invite-button -->
-				<NcButton
-					v-if="isOcmInvitesEnabled && !loadingInvites"
-					variant="secondary"
-					wide
-					:disabled="!defaultAddressbook"
-					@click="manualInviteAccept">
-					<template #icon>
-						<IconAccountArrowDownOutline :size="20" />
-					</template>
-					{{ t('contacts', 'Accept invite') }}
 				</NcButton>
 			</div>
 		</RootNavigation>
@@ -118,7 +97,7 @@
 		</Modal>
 		<Modal
 			v-if="showManualInvite"
-			:name="t('contacts', 'Accept invite')"
+			:name="t('contacts', 'Accept invitation')"
 			:no-close="loadingUpdate"
 			@close="manualInviteCancel">
 			<OcmAcceptForm
@@ -130,7 +109,7 @@
 		<!-- invite accept dialog -->
 		<Modal
 			v-if="showInviteAcceptDialog"
-			:name="t('contacts', 'Accept invite')"
+			:name="t('contacts', 'Accept invitation')"
 			:no-close="loadingUpdate"
 			@close="cancelInvite">
 			<OcmInviteAccept :token="inviteToken" :provider="inviteProvider">
@@ -175,8 +154,6 @@ import {
 } from '@nextcloud/vue'
 import ICAL from 'ical.js'
 import { mapStores } from 'pinia'
-import IconAccountArrowDownOutline from 'vue-material-design-icons/AccountArrowDownOutline.vue'
-import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import IconCancel from 'vue-material-design-icons/Cancel.vue'
 import IconCheck from 'vue-material-design-icons/Check.vue'
 import IconAdd from 'vue-material-design-icons/Plus.vue'
@@ -212,14 +189,12 @@ const _default = {
 
 	components: {
 		NcButton,
-		IconAccountArrowDownOutline,
 		CircleContent,
 		ChartContent,
 		ContactsContent,
 		ContactsPicker,
 		Content,
 		ImportView,
-		IconAccountSwitchOutline,
 		IconAdd,
 		IconCancel,
 		IconCheck,
