@@ -7,7 +7,7 @@
 	<AppContentList class="content-list">
 		<div class="contacts-list__header">
 			<div class="search-contacts-field">
-				<input v-model="query" type="text" :placeholder="t('contacts', 'Search invites …')">
+				<input v-model="query" type="text" :placeholder="t('contacts', 'Search invites...')">
 			</div>
 		</div>
 		<VList

@@ -59,7 +59,7 @@ export default {
 
 .envelope {
 	.app-content-list-item-icon {
-		height: 40px; // To prevent some unexpected spacing below the avatar
+		height: calc(var(--default-grid-baseline) * 10); // To prevent some unexpected spacing below the avatar
 	}
 
 	&__subtitle {

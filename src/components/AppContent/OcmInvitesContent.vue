@@ -5,7 +5,7 @@
 
 <template>
 	<AppContent v-if="loading">
-		<EmptyContent class="empty-content" :name="t('contacts', 'Loading invites …')">
+		<EmptyContent class="empty-content" :name="t('contacts', 'Loading invites...')">
 			<template #icon>
 				<IconLoading :size="20" />
 			</template>
