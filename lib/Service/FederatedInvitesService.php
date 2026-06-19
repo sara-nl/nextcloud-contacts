@@ -52,10 +52,6 @@ class FederatedInvitesService {
 		return $this->appConfig->getValueBool(Application::APP_ID, ConfigLexicon::OCM_INVITES_OPTIONAL_MAIL);
 	}
 
-	public function isCcSenderEnabled(): bool {
-		return $this->appConfig->getValueBool(Application::APP_ID, ConfigLexicon::OCM_INVITES_CC_SENDER);
-	}
-
 	public function isEncodedCopyButtonEnabled(): bool {
 		return $this->appConfig->getValueBool(Application::APP_ID, ConfigLexicon::OCM_INVITES_ENCODED_COPY_BUTTON);
 	}
@@ -70,7 +66,6 @@ class FederatedInvitesService {
 	 */
 	public const OCM_INVITES_BOOL_KEYS = [
 		ConfigLexicon::OCM_INVITES_OPTIONAL_MAIL,
-		ConfigLexicon::OCM_INVITES_CC_SENDER,
 		ConfigLexicon::OCM_INVITES_ENCODED_COPY_BUTTON,
 		ConfigLexicon::OCM_INVITES_DISABLE_SSRF_GUARD,
 	];
@@ -92,7 +87,6 @@ class FederatedInvitesService {
 	public function getOcmInvitesConfig(): array {
 		return [
 			'optionalMail' => $this->isOptionalMailEnabled(),
-			'ccSender' => $this->isCcSenderEnabled(),
 			'encodedCopyButton' => $this->isEncodedCopyButtonEnabled(),
 		];
 	}

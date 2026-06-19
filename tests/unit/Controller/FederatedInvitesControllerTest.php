@@ -532,7 +532,7 @@ class FederatedInvitesControllerTest extends TestCase {
 		$this->urlGenerator->method('linkToRoute')->with('contacts.page.index')->willReturn('/apps/contacts/');
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://local.example' . $path);
 
-		$response = $this->controller->createInvite('', '', 'mesh peer', false);
+		$response = $this->controller->createInvite('', '', 'mesh peer');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertNotNull($capturedInvite);
@@ -569,7 +569,7 @@ class FederatedInvitesControllerTest extends TestCase {
 		$this->urlGenerator->method('linkToRoute')->with('contacts.page.index')->willReturn('/apps/contacts/');
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://local.example' . $path);
 
-		$response = $this->controller->createInvite('recipient@example.org', '<b>hello</b>', '', false);
+		$response = $this->controller->createInvite('recipient@example.org', '<b>hello</b>', '');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertStringContainsString('&lt;b&gt;hello&lt;/b&gt;', (string)$capturedHtml);
@@ -583,7 +583,7 @@ class FederatedInvitesControllerTest extends TestCase {
 			->willReturn(false);
 		$this->mapper->expects($this->never())->method('insert');
 
-		$response = $this->controller->createInvite('', '', '', false);
+		$response = $this->controller->createInvite('', '', '');
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 		$this->assertSame('Email address is required.', $response->getData()['message']);

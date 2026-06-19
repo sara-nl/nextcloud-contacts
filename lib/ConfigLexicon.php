@@ -26,7 +26,6 @@ use OCP\IAppConfig;
 class ConfigLexicon implements ILexicon {
 	public const OCM_INVITES_ENABLED = 'ocm_invites_enabled';
 	public const OCM_INVITES_OPTIONAL_MAIL = 'ocm_invites_optional_mail';
-	public const OCM_INVITES_CC_SENDER = 'ocm_invites_cc_sender';
 	public const OCM_INVITES_ENCODED_COPY_BUTTON = 'ocm_invites_encoded_copy_button';
 	public const OCM_INVITES_DISABLE_SSRF_GUARD = 'ocm_invites_disable_ssrf_guard';
 	public const MESH_PROVIDERS_SERVICE = 'mesh_providers_service';
@@ -55,13 +54,6 @@ class ConfigLexicon implements ILexicon {
 				ValueType::BOOL,
 				defaultRaw: false,
 				definition: 'Whether the recipient email field is optional when creating an OCM invite.',
-				lazy: true,
-			),
-			new Entry(
-				self::OCM_INVITES_CC_SENDER,
-				ValueType::BOOL,
-				defaultRaw: true,
-				definition: 'Whether the sender is CC-ed on the OCM invite email.',
 				lazy: true,
 			),
 			new Entry(

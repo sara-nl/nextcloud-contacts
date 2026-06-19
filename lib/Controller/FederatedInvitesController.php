@@ -161,14 +161,13 @@ class FederatedInvitesController extends Controller {
 	 * @param string $email the recipient email address to send the invitation to (optional)
 	 * @param string $message the optional message to send with the invitation
 	 * @param string $note optional note/label for identifying the invite
-	 * @param bool $ccSender whether to send a copy of the invite to the sender
 	 * @return JSONResponse with data signature ['invite' | 'message'] - the invite url or an error message in case of error.
 	 */
 	#[NoAdminRequired]
 	#[UserRateLimit(limit: 60, period: 3600)]
 	#[BruteForceProtection(action: 'ocmInviteCreate')]
 	#[FrontpageRoute(verb: 'POST', url: '/ocm/invitations')]
-	public function createInvite(string $email = '', string $message = '', string $note = '', bool $ccSender = false): JSONResponse {
+	public function createInvite(string $email = '', string $message = '', string $note = ''): JSONResponse {
 		if (($disabled = $this->requireOcmInvitesEnabled()) !== null) {
 			return $disabled;
 		}
@@ -253,14 +252,6 @@ class FederatedInvitesController extends Controller {
 					return new JSONResponse(['message' => 'An unexpected error occurred creating the invite.'], Http::STATUS_INTERNAL_SERVER_ERROR);
 				}
 				return $response;
-			}
-
-			if ($ccSender && $this->federatedInvitesService->isCcSenderEnabled()) {
-				$response = $this->sendInvitationEmail($token, $senderProvider, $email, $message, true);
-				if ($response->getStatus() !== Http::STATUS_OK) {
-					$this->logger->error('Unable to send copy of email', ['app' => Application::APP_ID]);
-					return new JSONResponse(['message' => 'A copy of the invite could not be sent to you.'], Http::STATUS_INTERNAL_SERVER_ERROR);
-				}
 			}
 		}
 
