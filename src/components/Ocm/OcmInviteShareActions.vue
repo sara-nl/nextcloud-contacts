@@ -4,29 +4,51 @@
 -->
 
 <template>
-	<div class="share-buttons">
-		<NcButton variant="secondary" data-testid="ocm-invite-link-copy-btn" @click="emitCopy(wayfLink, clipboardKinds.inviteLink)">
-			<template #icon>
-				<ContentCopyIcon :size="20" />
-			</template>
-			{{ t('contacts', 'Copy invite link') }}
-		</NcButton>
-		<NcButton variant="secondary" data-testid="ocm-invite-token-copy-btn" @click="emitCopy(plainInviteString, clipboardKinds.inviteCode)">
-			<template #icon>
-				<ContentCopyIcon :size="20" />
-			</template>
-			{{ t('contacts', 'Copy invite code') }}
-		</NcButton>
-		<NcButton
-			v-if="encodedCopyButtonEnabled"
-			variant="secondary"
-			data-testid="ocm-invite-base64-copy-btn"
-			@click="emitCopy(base64InviteString, clipboardKinds.encodedInvite)">
-			<template #icon>
-				<ContentCopyIcon :size="20" />
-			</template>
-			{{ t('contacts', 'Copy encoded invite code') }}
-		</NcButton>
+	<div class="share-rows">
+		<div class="share-row">
+			<span class="share-row__label">{{ t('contacts', 'Invite link') }}</span>
+			<span class="share-row__value" :title="inviteLink">{{ inviteLink }}</span>
+			<NcButton
+				variant="tertiary-no-background"
+				:aria-label="t('contacts', 'Copy invite link to clipboard')"
+				:title="t('contacts', 'Copy invite link to clipboard')"
+				data-testid="ocm-invite-link-copy-btn"
+				@click="emitCopy(inviteLink, clipboardKinds.inviteLink)">
+				<template #icon>
+					<ContentCopyIcon :size="20" />
+				</template>
+			</NcButton>
+		</div>
+
+		<div class="share-row">
+			<span class="share-row__label">{{ t('contacts', 'Invite code') }}</span>
+			<span class="share-row__value" :title="inviteCode">{{ inviteCode }}</span>
+			<NcButton
+				variant="tertiary-no-background"
+				:aria-label="t('contacts', 'Copy invite code to clipboard')"
+				:title="t('contacts', 'Copy invite code to clipboard')"
+				data-testid="ocm-invite-code-copy-btn"
+				@click="emitCopy(inviteCode, clipboardKinds.inviteCode)">
+				<template #icon>
+					<ContentCopyIcon :size="20" />
+				</template>
+			</NcButton>
+		</div>
+
+		<div v-if="encodedCopyButtonEnabled" class="share-row">
+			<span class="share-row__label">{{ t('contacts', 'Encoded invite') }}</span>
+			<span class="share-row__value" :title="encodedInvite">{{ encodedInvite }}</span>
+			<NcButton
+				variant="tertiary-no-background"
+				:aria-label="t('contacts', 'Copy encoded invite to clipboard')"
+				:title="t('contacts', 'Copy encoded invite to clipboard')"
+				data-testid="ocm-invite-base64-copy-btn"
+				@click="emitCopy(encodedInvite, clipboardKinds.encodedInvite)">
+				<template #icon>
+					<ContentCopyIcon :size="20" />
+				</template>
+			</NcButton>
+		</div>
 	</div>
 </template>
 
@@ -47,19 +69,19 @@ export default {
 			default: false,
 		},
 
-		wayfLink: {
+		inviteLink: {
 			type: String,
 			required: true,
 		},
 
-		plainInviteString: {
+		inviteCode: {
 			type: String,
-			required: true,
+			default: '',
 		},
 
-		base64InviteString: {
+		encodedInvite: {
 			type: String,
-			required: true,
+			default: '',
 		},
 
 		clipboardKinds: {
@@ -79,14 +101,37 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.share-buttons {
+.share-rows {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5em;
+}
 
-	:deep(.button-vue) {
-		width: 100%;
-		justify-content: flex-start;
+.share-row {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--default-grid-baseline) * 2);
+	padding: calc(var(--default-grid-baseline) * 2) 0;
+	border-bottom: 1px solid var(--color-border);
+
+	&:last-child {
+		border-bottom: none;
+	}
+
+	&__label {
+		flex: 0 0 calc(var(--default-grid-baseline) * 28);
+		color: var(--color-text-maxcontrast);
+		font-size: 0.9em;
+	}
+
+	&__value {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+		font-size: 0.85em;
+		color: var(--color-main-text);
 	}
 }
 </style>

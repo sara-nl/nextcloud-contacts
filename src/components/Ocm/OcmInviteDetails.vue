@@ -18,7 +18,7 @@
 
 		<template v-else>
 			<div class="invite-details">
-				<h2>{{ t('contacts', 'Invitation') }}</h2>
+				<h2>{{ t('contacts', 'External invitation') }}</h2>
 
 				<div class="invite-info">
 					<div v-if="invite.recipientName" class="info-row">
@@ -39,38 +39,30 @@
 					</div>
 				</div>
 
-				<!-- Share buttons -->
-				<details
-					v-if="invite.recipientEmail"
-					:key="inviteKey"
-					class="share-section share-section--collapsible"
-					data-testid="ocm-invite-share-section">
-					<summary class="share-section__summary">
-						<span>{{ t('contacts', 'More ways to share') }}</span>
-					</summary>
-					<p class="share-hint">
-						{{ t('contacts', 'Useful for chat apps and manual acceptance. The recipient already received the invite by email.') }}
-					</p>
-					<OcmInviteShareActions
-						:base64-invite-string="base64InviteString"
-						:clipboard-kinds="clipboardKinds"
-						:encoded-copy-button-enabled="encodedCopyButtonEnabled"
-						:plain-invite-string="plainInviteString"
-						:wayf-link="wayfLink"
-						@copy="onCopyAction" />
-				</details>
-				<div v-else class="share-section" data-testid="ocm-invite-share-section">
-					<h3>{{ t('contacts', 'Share invitation') }}</h3>
-					<p class="share-hint">
-						{{ t('contacts', 'The invite link is the easiest way to share. Invite codes like token@provider are for manual acceptance.') }}
-					</p>
-					<OcmInviteShareActions
-						:base64-invite-string="base64InviteString"
-						:clipboard-kinds="clipboardKinds"
-						:encoded-copy-button-enabled="encodedCopyButtonEnabled"
-						:plain-invite-string="plainInviteString"
-						:wayf-link="wayfLink"
-						@copy="onCopyAction" />
+				<!-- More ways to share (collapsible) -->
+				<div class="more-ways" data-testid="ocm-invite-share-section">
+					<button
+						type="button"
+						class="more-ways__header"
+						:aria-expanded="showShare"
+						data-testid="ocm-invite-share-toggle"
+						@click="showShare = !showShare">
+						<span class="more-ways__title">{{ t('contacts', 'More ways to share') }}</span>
+						<IconChevronUp v-if="showShare" :size="20" />
+						<IconChevronDown v-else :size="20" />
+					</button>
+					<div v-if="showShare" class="more-ways__content">
+						<p class="more-ways__hint">
+							{{ t('contacts', 'Useful for sharing through a chat app or for manual acceptance.') }}
+						</p>
+						<OcmInviteShareActions
+							:invite-link="wayfLink"
+							:invite-code="inviteCode"
+							:encoded-invite="base64InviteString"
+							:clipboard-kinds="clipboardKinds"
+							:encoded-copy-button-enabled="encodedCopyButtonEnabled"
+							@copy="onCopyAction" />
+					</div>
 				</div>
 
 				<!-- Action buttons -->
@@ -135,6 +127,8 @@ import {
 } from '@nextcloud/vue'
 import { mapStores } from 'pinia'
 import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
+import IconChevronDown from 'vue-material-design-icons/ChevronDown.vue'
+import IconChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import EmailFastOutlineIcon from 'vue-material-design-icons/EmailFastOutline.vue'
 import OcmAttachEmailForm from './OcmAttachEmailForm.vue'
 import OcmInviteShareActions from './OcmInviteShareActions.vue'
@@ -152,6 +146,8 @@ export default {
 	components: {
 		EmailFastOutlineIcon,
 		IconAccountSwitchOutline,
+		IconChevronDown,
+		IconChevronUp,
 		Modal,
 		NcAppContentDetails,
 		NcButton,
@@ -170,7 +166,6 @@ export default {
 	data() {
 		const config = loadState('contacts', 'ocmInvitesConfig', {
 			optionalMail: false,
-			ccSender: true,
 			encodedCopyButton: false,
 		})
 		return {
@@ -178,6 +173,7 @@ export default {
 			showAttachEmailForm: false,
 			submittingAttachEmail: false,
 			isComponentMounted: false,
+			showShare: false,
 		}
 	},
 
@@ -210,7 +206,7 @@ export default {
 			return wayfUrl.toString()
 		},
 
-		plainInviteString() {
+		inviteCode() {
 			if (!this.invite) {
 				return ''
 			}
@@ -221,7 +217,7 @@ export default {
 			if (!this.invite) {
 				return ''
 			}
-			return btoa(this.plainInviteString)
+			return btoa(`${this.invite.token}@${this.provider}`)
 		},
 	},
 
@@ -248,11 +244,11 @@ export default {
 				await navigator.clipboard.writeText(text)
 				let message
 				switch (kind) {
+					case CLIPBOARD_KIND_ENCODED_INVITE:
+						message = this.t('contacts', 'Encoded invite copied to clipboard')
+						break
 					case CLIPBOARD_KIND_INVITE_CODE:
 						message = this.t('contacts', 'Invite code copied to clipboard')
-						break
-					case CLIPBOARD_KIND_ENCODED_INVITE:
-						message = this.t('contacts', 'Encoded invite code copied to clipboard')
 						break
 					case CLIPBOARD_KIND_INVITE_LINK:
 						message = this.t('contacts', 'Invite link copied to clipboard')
@@ -335,21 +331,21 @@ export default {
 
 <style lang="scss" scoped>
 .empty-content {
-	margin-top: 5em;
+	margin-top: calc(var(--default-grid-baseline) * 20);
 }
 
 .invite-details {
-	padding: 1.5em;
+	padding: calc(var(--default-grid-baseline) * 6);
 	max-width: 600px;
 
 	h2 {
-		margin: 0 0 1.5em 0;
+		margin: 0 0 calc(var(--default-grid-baseline) * 6) 0;
 		font-size: 1.4em;
 		font-weight: 600;
 	}
 
 	h3 {
-		margin: 0 0 0.75em 0;
+		margin: 0 0 calc(var(--default-grid-baseline) * 3) 0;
 		font-size: 1em;
 		font-weight: 600;
 		color: var(--color-text-maxcontrast);
@@ -357,19 +353,19 @@ export default {
 }
 
 .invite-info {
-	margin-bottom: 2em;
+	margin-bottom: calc(var(--default-grid-baseline) * 8);
 
 	.info-row {
 		display: flex;
-		padding: 0.6em 0;
-		border-bottom: 1px solid var(--color-border-dark);
+		padding: calc(var(--default-grid-baseline) * 2) 0;
+		border-bottom: 1px solid var(--color-border);
 
 		&:last-child {
 			border-bottom: none;
 		}
 
 		.info-label {
-			flex: 0 0 100px;
+			flex: 0 0 calc(var(--default-grid-baseline) * 25);
 			font-weight: 500;
 			color: var(--color-text-maxcontrast);
 		}
@@ -381,67 +377,48 @@ export default {
 	}
 }
 
-.share-section {
-	margin-bottom: 1.5em;
-	padding: calc(var(--default-grid-baseline) * 2);
+.more-ways {
+	margin-bottom: calc(var(--default-grid-baseline) * 6);
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
+	overflow: hidden;
 
-	.share-hint {
-		font-size: 0.85em;
-		color: var(--color-text-maxcontrast);
-		margin: 0 0 0.75em 0;
-	}
-}
-
-.share-section--collapsible {
-	&[open] .share-section__summary::after {
-		transform: rotate(90deg);
-	}
-
-	.share-section__summary {
-		cursor: pointer;
-		user-select: none;
-		font-weight: 600;
-		font-size: 0.95em;
-		color: var(--color-text-maxcontrast);
-		list-style: none;
+	&__header {
 		display: flex;
 		align-items: center;
-		gap: 0.5em;
-		padding: 0.25em 0;
-		border-radius: var(--border-radius);
+		justify-content: space-between;
+		gap: calc(var(--default-grid-baseline) * 2);
+		width: 100%;
+		padding: calc(var(--default-grid-baseline) * 3);
+		border: none;
+		background-color: transparent;
+		color: var(--color-main-text);
+		font-weight: 500;
+		cursor: pointer;
 
-		&::-webkit-details-marker {
-			display: none;
+		&:hover {
+			background-color: var(--color-background-hover);
 		}
 
 		&:focus-visible {
 			outline: 2px solid var(--color-primary-element);
-			outline-offset: 2px;
-		}
-
-		&::after {
-			content: '';
-			display: inline-block;
-			width: 0;
-			height: 0;
-			margin-inline-start: auto;
-			border-block-start: 5px solid transparent;
-			border-block-end: 5px solid transparent;
-			border-inline-start: 6px solid currentColor;
-			transition: transform 0.15s ease-in-out;
+			outline-offset: -2px;
+			background-color: var(--color-background-hover);
 		}
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.share-section__summary::after {
-			transition: none;
-		}
+	&__title {
+		text-align: start;
 	}
 
-	.share-hint {
-		margin-top: 0.5em;
+	&__content {
+		padding: 0 calc(var(--default-grid-baseline) * 3) calc(var(--default-grid-baseline) * 3);
+	}
+
+	&__hint {
+		font-size: 0.85em;
+		color: var(--color-text-maxcontrast);
+		margin: 0 0 calc(var(--default-grid-baseline) * 3) 0;
 	}
 }
 
@@ -450,11 +427,7 @@ export default {
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
-	gap: 0.75em;
-
-	.action-buttons__primary {
-		margin-inline-start: auto;
-	}
+	gap: calc(var(--default-grid-baseline) * 3);
 
 	@media (max-width: 480px) {
 		flex-direction: column;
