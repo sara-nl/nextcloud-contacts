@@ -11,65 +11,68 @@
 					<h2>{{ t('contacts', 'Providers') }}</h2>
 					<p>{{ t('contacts', 'Where are you from?') }}</p>
 					<p>{{ t('contacts', 'Please tell us your cloud provider.') }}</p>
-					<div v-if="hasFederationData">
-						<NcTextField
-							id="wayf-search"
-							v-model="query"
-							:label="t('contacts', 'Type to search')"
-							type="search"
-							name="search">
-							<template #icon>
-								<Magnify :size="20" />
-							</template>
-						</NcTextField>
-						<div v-if="hasVisibleProviders">
-							<div
-								v-for="group in visibleFederations"
-								:key="group.federation">
-								<h3>{{ group.federation }}</h3>
-								<ul class="wayf-list">
-									<NcListItem
-										v-for="p in group.providers"
-										:key="p.fqdn"
-										:href="p.inviteUrl"
-										:name="p.name"
-										one-line>
-										<template #icon>
-											<NcListItemIcon :name="p.name" :subname="p.fqdn">
-												<WeatherCloudyArrowRight :size="20" />
-											</NcListItemIcon>
-										</template>
-									</NcListItem>
-								</ul>
+					<NcFormBox class="wayf-form">
+						<div v-if="hasFederationData" class="wayf-search">
+							<NcTextField
+								id="wayf-search"
+								v-model="query"
+								:label="t('contacts', 'Type to search')"
+								type="search"
+								name="search">
+								<template #icon>
+									<Magnify :size="20" />
+								</template>
+							</NcTextField>
+							<div v-if="hasVisibleProviders">
+								<div
+									v-for="group in visibleFederations"
+									:key="group.federation">
+									<h3>{{ group.federation }}</h3>
+									<ul class="wayf-list">
+										<NcListItem
+											v-for="p in group.providers"
+											:key="p.fqdn"
+											:href="p.inviteUrl"
+											:name="p.name"
+											one-line>
+											<template #icon>
+												<NcListItemIcon :name="p.name" :subname="p.fqdn">
+													<WeatherCloudyArrowRight :size="20" />
+												</NcListItemIcon>
+											</template>
+										</NcListItem>
+									</ul>
+								</div>
 							</div>
+							<p v-else class="wayf-empty">
+								{{ t('contacts', 'No providers match your search.') }}
+							</p>
 						</div>
 						<p v-else class="wayf-empty">
-							{{ t('contacts', 'No providers match your search.') }}
+							{{ t('contacts', 'No providers are currently available.') }}
 						</p>
-					</div>
-					<p v-else class="wayf-empty">
-						{{ t('contacts', 'No providers are currently available.') }}
-					</p>
-					<form class="wayf-manual-form" @submit.prevent="goToManualProvider">
-						<NcTextField
-							id="wayf-manual"
-							v-model="manualProvider"
-							:label="t('contacts', 'No provider listed? Enter one manually.')"
-							type="text"
-							name="manual">
-							<template #icon>
-								<WeatherCloudyArrowRight :size="20" />
-							</template>
-						</NcTextField>
-						<div class="wayf-manual-actions">
-							<NcButton type="submit">
-								{{ t('contacts', 'Continue') }}
-							</NcButton>
+						<div class="wayf-manual">
+							<NcTextField
+								id="wayf-manual"
+								v-model="manualProvider"
+								:label="t('contacts', 'No provider listed? Enter one manually.')"
+								type="text"
+								name="manual"
+								@keydown.enter.prevent="goToManualProvider">
+								<template #icon>
+									<WeatherCloudyArrowRight :size="20" />
+								</template>
+							</NcTextField>
+							<div class="wayf-manual-actions">
+								<NcButton variant="primary" @click="goToManualProvider">
+									{{ t('contacts', 'Continue') }}
+								</NcButton>
+							</div>
 						</div>
-					</form>
+					</NcFormBox>
 				</div>
 				<div v-else>
-					<p>{{ t('contacts', 'You need an invite code for this feature to work.') }}</p>
+					<p>{{ t('contacts', 'You need an invite link for this feature to work.') }}</p>
 				</div>
 			</div>
 		</template>
@@ -87,6 +90,7 @@ import {
 	NcListItemIcon,
 	NcTextField,
 } from '@nextcloud/vue'
+import NcFormBox from '@nextcloud/vue/components/NcFormBox'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
 import WeatherCloudyArrowRight from 'vue-material-design-icons/WeatherCloudyArrowRight.vue'
 
@@ -95,6 +99,7 @@ export default {
 	components: {
 		Magnify,
 		NcButton,
+		NcFormBox,
 		NcGuestContent,
 		NcListItem,
 		NcListItemIcon,
@@ -218,7 +223,7 @@ export default {
 #contacts-wayf {
   background: var(--color-background-plain);
   color: var(--color-background-plain-text);
-  border-radius: 8px;
+  border-radius: var(--border-radius-large);
 }
 
 .wayf-list {
@@ -231,10 +236,10 @@ export default {
 .wayf-list > li {
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: calc(var(--default-grid-baseline) * 2);
 
-  padding: 0.75rem 1rem;
-  margin: 0.25rem 0;
+  padding: calc(var(--default-grid-baseline) * 3) calc(var(--default-grid-baseline) * 4);
+  margin: var(--default-grid-baseline) 0;
 
   background-color: var(--color-background-dark);
   color: var(--color-main-text);
@@ -254,17 +259,17 @@ export default {
 }
 
 .wayf-empty {
-  margin-block: 0.75rem 1rem;
+  margin-block: calc(var(--default-grid-baseline) * 3) calc(var(--default-grid-baseline) * 4);
   color: var(--color-text-maxcontrast);
 }
 
-.wayf-manual-form {
-  margin-top: 1rem;
+.wayf-manual {
+  margin-top: calc(var(--default-grid-baseline) * 4);
 }
 
 .wayf-manual-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.5rem;
+  margin-top: calc(var(--default-grid-baseline) * 2);
 }
 </style>
