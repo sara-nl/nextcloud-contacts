@@ -28,7 +28,6 @@ interface NewInvitePayload {
 	email?: string
 	message?: string
 	note?: string
-	ccSender?: boolean
 }
 
 interface AttachEmailPayload {
@@ -122,7 +121,6 @@ const useOcmInvitesStore = defineStore('ocminvites', {
 				email: invite.email || '',
 				message: invite.message || '',
 				note: invite.note || '',
-				ccSender: invite.ccSender || false,
 			}
 			let response
 			try {

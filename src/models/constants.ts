@@ -40,7 +40,6 @@ export const SECTION_EXTERNAL_INVITATIONS = t('contacts', 'External invitations'
 export const GROUP_ALL_OCM_INVITES = t('contacts', 'All invitations')
 export const OCM_INVITES_CONFIG_KEYS = {
 	optionalMail: 'ocm_invites_optional_mail',
-	ccSender: 'ocm_invites_cc_sender',
 	encodedCopyButton: 'ocm_invites_encoded_copy_button',
 } as const
 

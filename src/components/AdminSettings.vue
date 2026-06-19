@@ -28,21 +28,12 @@
 		</p>
 		<p>
 			<input
-				id="ocm-invites-cc-sender"
-				v-model="ocmInvitesConfig.ccSender"
-				type="checkbox"
-				class="checkbox"
-				@change="updateOcmSetting(ocmInviteConfigKeys.ccSender, ocmInvitesConfig.ccSender)">
-			<label for="ocm-invites-cc-sender">{{ t('contacts', 'Offer the option to also send a copy of the invite to the sender') }}</label>
-		</p>
-		<p>
-			<input
 				id="ocm-invites-encoded-copy-button"
 				v-model="ocmInvitesConfig.encodedCopyButton"
 				type="checkbox"
 				class="checkbox"
 				@change="updateOcmSetting(ocmInviteConfigKeys.encodedCopyButton, ocmInvitesConfig.encodedCopyButton)">
-			<label for="ocm-invites-encoded-copy-button">{{ t('contacts', 'Show the "Copy encoded invite code" button on invite details') }}</label>
+			<label for="ocm-invites-encoded-copy-button">{{ t('contacts', 'Show the "Copy encoded invite" button on invite details') }}</label>
 		</p>
 	</div>
 </template>
@@ -62,7 +53,6 @@ export default {
 			ocmInviteConfigKeys: OCM_INVITES_CONFIG_KEYS,
 			ocmInvitesConfig: loadState('contacts', 'ocmInvitesConfig', {
 				optionalMail: false,
-				ccSender: true,
 				encodedCopyButton: false,
 			}),
 		}

@@ -252,7 +252,6 @@ describe('ocminvites store', () => {
 				email: 'recipient@example.org',
 				message: 'See you soon',
 				note: 'CERN contact',
-				ccSender: true,
 			})
 
 			expect(axios.post).toHaveBeenCalledTimes(1)
@@ -260,7 +259,6 @@ describe('ocminvites store', () => {
 				email: 'recipient@example.org',
 				message: 'See you soon',
 				note: 'CERN contact',
-				ccSender: true,
 			})
 			expect(axios.get).toHaveBeenCalledTimes(1)
 			expect(store.ocmInvites['new-token']).toBeDefined()
@@ -277,7 +275,6 @@ describe('ocminvites store', () => {
 				email: '',
 				message: '',
 				note: '',
-				ccSender: false,
 			})
 		})
 
