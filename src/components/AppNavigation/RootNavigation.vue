@@ -130,8 +130,8 @@
 					</template>
 					<template #counter>
 						<NcCounterBubble
-							v-if="ocmInvites.length"
-							:count="ocmInvites.length" />
+							v-if="pendingOcmInvitesCount"
+							:count="pendingOcmInvitesCount" />
 					</template>
 				</AppNavigationItem>
 			</template>
@@ -389,8 +389,11 @@ export default {
 			return this.userGroupStore.userGroupList
 		},
 
-		ocmInvites() {
-			return this.ocminvitesStore.sortedOcmInvites
+		// Only invitations the recipient has not accepted yet should drive
+		// the navigation badge, so it reads as a pending-action count.
+		pendingOcmInvitesCount() {
+			return Object.values(this.ocminvitesStore.ocmInvites)
+				.filter((invite) => !invite.accepted).length
 		},
 
 		// list all the contacts that doesn't have a group
