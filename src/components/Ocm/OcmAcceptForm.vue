@@ -5,9 +5,6 @@
 
 <template>
 	<div class="ocm_manual_form">
-		<h5>
-			{{ t('contacts', 'Accept invite to exchange contact info.') }}
-		</h5>
 		<p>
 			{{ t('contacts', 'Accepting will add the inviter to your contacts list and in return, your contact info will be sent to the inviter. From there on you can start sharing data with each other.') }}
 		</p>
@@ -15,26 +12,26 @@
 		<div class="ocm_manual_inputs">
 			<NcTextField
 				v-model="invite"
-				:label="t('contacts', 'Invite link, invite code, or encoded invite code (required)')"
+				:label="t('contacts', 'Invite link or code (required)')"
 				type="text"
 				:error="Boolean(error)"
-				:helper-text="error || t('contacts', 'Paste an invite link, invite code (token@provider), or encoded invite code')"
+				:helper-text="error || t('contacts', 'Paste the invite link, or an invite code (token@provider), you received from the other person.')"
 				:required="true" />
 
 			<div class="ocm_manual_buttons">
-				<NcButton :disabled="loadingUpdate" @click="accept">
-					<template #icon>
-						<NcLoadingIcon v-if="loadingUpdate" :size="20" />
-						<IconCheck v-else :size="20" />
-					</template>
-					{{ t('contacts', 'Accept') }}
-				</NcButton>
-				<NcButton :disabled="loadingUpdate" @click="cancel">
+				<NcButton variant="tertiary" :disabled="loadingUpdate" @click="cancel">
 					<template #icon>
 						<NcLoadingIcon v-if="loadingUpdate" :size="20" />
 						<IconCancel v-else :size="20" />
 					</template>
 					{{ t('contacts', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary" :disabled="loadingUpdate" @click="accept">
+					<template #icon>
+						<NcLoadingIcon v-if="loadingUpdate" :size="20" />
+						<IconCheck v-else :size="20" />
+					</template>
+					{{ t('contacts', 'Accept') }}
 				</NcButton>
 			</div>
 		</div>
@@ -175,20 +172,21 @@ export default {
 <style lang="scss" scoped>
 .ocm_manual_buttons {
   display: flex;
-  gap: 0.5rem;
+  justify-content: flex-end;
+  gap: calc(var(--default-grid-baseline) * 2);
 }
 
 .ocm_manual_form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 1em;
+  gap: calc(var(--default-grid-baseline) * 4);
+  margin: calc(var(--default-grid-baseline) * 4);
   p {
-    margin-bottom: 1em;
+    margin-bottom: calc(var(--default-grid-baseline) * 4);
   }
 
   div.ocm_manual_inputs {
-    margin-inline-start: 0.2em;
+    margin-inline-start: var(--default-grid-baseline);
     width: 80%;
   }
 }

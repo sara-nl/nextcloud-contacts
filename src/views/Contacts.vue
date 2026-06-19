@@ -65,23 +65,14 @@
 		<!-- new invite form -->
 		<Modal
 			v-if="showNewInviteForm"
-			:name="t('contacts', 'Invite someone to share contacts')"
+			:name="t('contacts', 'Invite someone outside your organization to collaborate.')"
 			:no-close="loadingUpdate"
 			@close="cancelNewInvite">
 			<OcmInviteForm v-model:ocm-invite="ocmInvite" :loading-update="loadingUpdate">
 				<template #new-invite-actions>
 					<div class="new-invite-form__buttons-row">
 						<NcButton
-							:disabled="loadingUpdate"
-							data-testid="ocm-invite-new-submit-btn"
-							@click="sendNewInvite">
-							<template #icon>
-								<IconLoading v-if="loadingUpdate" :size="20" />
-								<IconCheck v-else :size="20" />
-							</template>
-							{{ newInvitePrimaryLabel }}
-						</NcButton>
-						<NcButton
+							variant="tertiary"
 							:disabled="loadingUpdate"
 							data-testid="ocm-invite-new-cancel-btn"
 							@click="cancelNewInvite">
@@ -90,6 +81,17 @@
 								<IconCancel v-else :size="20" />
 							</template>
 							{{ t("contacts", "Cancel") }}
+						</NcButton>
+						<NcButton
+							variant="primary"
+							:disabled="loadingUpdate"
+							data-testid="ocm-invite-new-submit-btn"
+							@click="sendNewInvite">
+							<template #icon>
+								<IconLoading v-if="loadingUpdate" :size="20" />
+								<IconCheck v-else :size="20" />
+							</template>
+							{{ newInvitePrimaryLabel }}
 						</NcButton>
 					</div>
 				</template>
@@ -115,19 +117,19 @@
 			<OcmInviteAccept :token="inviteToken" :provider="inviteProvider">
 				<template #accept-invite-actions>
 					<div class="invite-accept-form__buttons-row">
-						<NcButton :disabled="loadingUpdate" @click="acceptInvite">
-							<template #icon>
-								<IconLoading v-if="loadingUpdate" :size="20" />
-								<IconCheck v-else :size="20" />
-							</template>
-							{{ t("contacts", "Accept") }}
-						</NcButton>
-						<NcButton :disabled="loadingUpdate" @click="cancelInvite">
+						<NcButton variant="tertiary" :disabled="loadingUpdate" @click="cancelInvite">
 							<template #icon>
 								<IconLoading v-if="loadingUpdate" :size="20" />
 								<IconCancel v-else :size="20" />
 							</template>
 							{{ t("contacts", "Cancel") }}
+						</NcButton>
+						<NcButton variant="primary" :disabled="loadingUpdate" @click="acceptInvite">
+							<template #icon>
+								<IconLoading v-if="loadingUpdate" :size="20" />
+								<IconCheck v-else :size="20" />
+							</template>
+							{{ t("contacts", "Accept") }}
 						</NcButton>
 					</div>
 				</template>
@@ -236,11 +238,6 @@ const _default = {
 			inviteProvider: inviteProvider,
 			ocmInvite: { email: '', message: '', note: '' },
 			loadingUpdate: false,
-			ocmInvitesConfig: loadState('contacts', 'ocmInvitesConfig', {
-				optionalMail: false,
-				ccSender: true,
-				encodedCopyButton: false,
-			}),
 		}
 	},
 
@@ -749,6 +746,7 @@ export default _default
 
 .invite-accept-form__buttons-row {
   display: flex;
+  justify-content: flex-end;
   gap: calc(var(--default-grid-baseline) * 2);
   margin-top: calc(var(--default-grid-baseline) * 4);
 }
@@ -758,6 +756,7 @@ export default _default
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  justify-content: space-between;
+  gap: calc(var(--default-grid-baseline) * 2);
+  justify-content: flex-end;
 }
 </style>

@@ -5,9 +5,6 @@
 
 <template>
 	<div class="contact-header__infos">
-		<h5>
-			{{ t('contacts', 'Accept invite to exchange contact info.') }}
-		</h5>
 		<p>{{ t('contacts', 'Accepting will add the inviter to your contacts list and in return, your contact info will be sent to the inviter. From there on you can start sharing data with each other.') }}</p>
 		<dl class="invitation-details">
 			<dt>{{ t('contacts', 'Invite code') }}</dt>
@@ -45,27 +42,23 @@ export default {
 
 <style lang="scss" scoped>
 .contact-header__infos {
-	margin: 1em;
-
-	h5 {
-		margin: 0 0 0.5em 0;
-	}
+	margin: calc(var(--default-grid-baseline) * 4);
 
 	> p {
-		margin-bottom: 1.5em;
+		margin-bottom: calc(var(--default-grid-baseline) * 6);
 		color: var(--color-text-maxcontrast);
 	}
 }
 
 .invitation-details {
-	margin: 0 0 1.5em 0;
-	padding: 1em;
+	margin: 0 0 calc(var(--default-grid-baseline) * 6) 0;
+	padding: calc(var(--default-grid-baseline) * 4);
 	background: var(--color-background-dark);
 	border-radius: var(--border-radius-large);
 	display: grid;
 	grid-template-columns: max-content minmax(0, 1fr);
-	column-gap: 1em;
-	row-gap: 0.5em;
+	column-gap: calc(var(--default-grid-baseline) * 4);
+	row-gap: calc(var(--default-grid-baseline) * 2);
 	align-items: baseline;
 
 	dt {
@@ -90,10 +83,10 @@ export default {
 @media (max-width: 480px) {
 	.invitation-details {
 		grid-template-columns: 1fr;
-		row-gap: 0.25em;
+		row-gap: var(--default-grid-baseline);
 
 		dd {
-			margin-bottom: 0.5em;
+			margin-bottom: calc(var(--default-grid-baseline) * 2);
 		}
 	}
 }

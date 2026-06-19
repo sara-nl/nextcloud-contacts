@@ -5,7 +5,6 @@
 
 <template>
 	<div class="contact-header__infos" :aria-busy="loading">
-		<h5>{{ t('contacts', 'Send this invite via email') }}</h5>
 		<p>{{ t('contacts', 'The recipient will receive an email with the invite link. Their email address will be saved on the invite so you can resend later.') }}</p>
 
 		<div class="form-field">
@@ -49,7 +48,7 @@
 				<template #icon>
 					<EmailFastOutlineIcon :size="20" />
 				</template>
-				{{ loading ? t('contacts', 'Sending…') : t('contacts', 'Send') }}
+				{{ loading ? t('contacts', 'Sending...') : t('contacts', 'Send') }}
 			</NcButton>
 		</div>
 	</div>
@@ -125,26 +124,22 @@ export default {
 
 <style lang="scss" scoped>
 .contact-header__infos {
-	margin: 1em;
-
-	h5 {
-		margin: 0 0 0.5em 0;
-	}
+	margin: calc(var(--default-grid-baseline) * 4);
 
 	> p {
-		margin-bottom: 1.5em;
+		margin-bottom: calc(var(--default-grid-baseline) * 6);
 		color: var(--color-text-maxcontrast);
 	}
 
 	.form-field {
-		margin-bottom: 1em;
+		margin-bottom: calc(var(--default-grid-baseline) * 4);
 	}
 
 	.actions {
 		display: flex;
 		justify-content: flex-end;
-		gap: 0.5em;
-		margin-top: 1em;
+		gap: calc(var(--default-grid-baseline) * 2);
+		margin-top: calc(var(--default-grid-baseline) * 4);
 	}
 }
 </style>
