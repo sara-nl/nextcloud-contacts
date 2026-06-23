@@ -94,6 +94,50 @@
 				</template>
 			</AppNavigationItem>
 
+			<template v-if="isOcmInvitesEnabled">
+				<AppNavigationCaption
+					id="external-invitations"
+					:name="SECTION_EXTERNAL_INVITATIONS">
+					<template #actions>
+						<NcActionButton
+							close-after-click
+							:disabled="!inviteActionsEnabled"
+							@click="openCreateInvite">
+							<template #icon>
+								<IconAdd :size="20" />
+							</template>
+							{{ t('contacts', 'Create invitation') }}
+						</NcActionButton>
+						<NcActionButton
+							close-after-click
+							:disabled="!inviteActionsEnabled"
+							@click="openAcceptInvite">
+							<template #icon>
+								<IconAccountArrowDownOutline :size="20" />
+							</template>
+							{{ t('contacts', 'Accept invitation') }}
+						</NcActionButton>
+					</template>
+				</AppNavigationCaption>
+				<AppNavigationItem
+					id="ocm-invites"
+					:name="GROUP_ALL_OCM_INVITES"
+					:to="{
+						name: ROUTE_NAME_ALL_OCM_INVITES,
+					}"
+					:active="routeState === 'ocm-invites'"
+					@click="updateRouteState('ocm-invites')">
+					<template #icon>
+						<IconAccountSwitchOutline :size="20" />
+					</template>
+					<template #counter>
+						<NcCounterBubble
+							v-if="pendingOcmInvitesCount"
+							:count="pendingOcmInvitesCount" />
+					</template>
+				</AppNavigationItem>
+			</template>
+
 			<AppNavigationCaption
 				id="newgroup"
 				v-model:menu-open="isNewGroupMenuOpen"
@@ -215,9 +259,11 @@ import {
 import { mapStores } from 'pinia'
 import naturalCompare from 'string-natural-compare'
 import IconUserFilled from 'vue-material-design-icons/Account.vue'
+import IconAccountArrowDownOutline from 'vue-material-design-icons/AccountArrowDownOutline.vue'
 import IconContactFilled from 'vue-material-design-icons/AccountMultiple.vue'
 import IconContact from 'vue-material-design-icons/AccountMultipleOutline.vue'
 import IconUser from 'vue-material-design-icons/AccountOutline.vue'
+import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import IconError from 'vue-material-design-icons/AlertCircleOutline.vue'
 import Cog from 'vue-material-design-icons/CogOutline.vue'
 import IconAdd from 'vue-material-design-icons/Plus.vue'
@@ -227,9 +273,11 @@ import CircleNavigationItem from './CircleNavigationItem.vue'
 import ContactsSettings from './ContactsSettings.vue'
 import GroupNavigationItem from './GroupNavigationItem.vue'
 import RouterMixin from '../../mixins/RouterMixin.js'
-import { CHART_ALL_CONTACTS, CIRCLE_DESC, CONTACTS_SETTINGS, ELLIPSIS_COUNT, GROUP_ALL_CONTACTS, GROUP_NO_GROUP_CONTACTS, GROUP_RECENTLY_CONTACTED } from '../../models/constants.ts'
+import { CHART_ALL_CONTACTS, CIRCLE_DESC, CONTACTS_SETTINGS, ELLIPSIS_COUNT, GROUP_ALL_CONTACTS, GROUP_ALL_OCM_INVITES, GROUP_NO_GROUP_CONTACTS, GROUP_RECENTLY_CONTACTED, ROUTE_NAME_ALL_OCM_INVITES, ROUTE_NAME_OCM_INVITE, SECTION_EXTERNAL_INVITATIONS } from '../../models/constants.ts'
 import isCirclesEnabled from '../../services/isCirclesEnabled.js'
 import isContactsInteractionEnabled from '../../services/isContactsInteractionEnabled.js'
+import isOcmInvitesEnabled from '../../services/isOcmInvitesEnabled.js'
+import useOcmInvitesStore from '../../store/ocminvites.ts'
 import useUserGroupStore from '../../store/userGroup.ts'
 
 export default {
@@ -247,6 +295,8 @@ export default {
 		Cog,
 		ContactsSettings,
 		GroupNavigationItem,
+		IconAccountArrowDownOutline,
+		IconAccountSwitchOutline,
 		IconContact,
 		IconContactFilled,
 		IconUser,
@@ -266,7 +316,17 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+
+		inviteActionsEnabled: {
+			type: Boolean,
+			default: false,
+		},
 	},
+
+	emits: [
+		'open-create-invite',
+		'open-accept-invite',
+	],
 
 	data() {
 		return {
@@ -277,6 +337,9 @@ export default {
 			CHART_ALL_CONTACTS,
 			GROUP_NO_GROUP_CONTACTS,
 			GROUP_RECENTLY_CONTACTED,
+			GROUP_ALL_OCM_INVITES,
+			ROUTE_NAME_ALL_OCM_INVITES,
+			SECTION_EXTERNAL_INVITATIONS,
 
 			// create group
 			isNewGroupMenuOpen: false,
@@ -296,6 +359,7 @@ export default {
 			showSettings: false,
 
 			routeState: 'all',
+			isOcmInvitesEnabled,
 		}
 	},
 
@@ -325,6 +389,13 @@ export default {
 
 		userGroups() {
 			return this.userGroupStore.userGroupList
+		},
+
+		// Only invitations the recipient has not accepted yet should drive
+		// the navigation badge, so it reads as a pending-action count.
+		pendingOcmInvitesCount() {
+			return Object.values(this.ocminvitesStore.ocmInvites)
+				.filter((invite) => !invite.accepted).length
 		},
 
 		// list all the contacts that doesn't have a group
@@ -422,7 +493,7 @@ export default {
 				: t('contacts', 'Collapse teams')
 		},
 
-		...mapStores(useUserGroupStore),
+		...mapStores(useOcmInvitesStore, useUserGroupStore),
 	},
 
 	methods: {
@@ -515,6 +586,20 @@ export default {
 		updateRouteState(state) {
 			this.routeState = state
 		},
+
+		openCreateInvite() {
+			if (!this.inviteActionsEnabled) {
+				return
+			}
+			this.$emit('open-create-invite')
+		},
+
+		openAcceptInvite() {
+			if (!this.inviteActionsEnabled) {
+				return
+			}
+			this.$emit('open-accept-invite')
+		},
 	},
 }
 </script>
@@ -526,6 +611,7 @@ $caption-padding: 22px;
 	padding: calc(var(--default-grid-baseline, 4px) * 2);
 }
 
+#external-invitations,
 #newgroup,
 #newcircle {
 	margin-top: $caption-padding;
