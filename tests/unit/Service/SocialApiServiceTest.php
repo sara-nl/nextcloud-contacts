@@ -143,10 +143,56 @@ class SocialApiServiceTest extends TestCase {
 		$this->assertEmpty($result);
 	}
 
+	public function testUpdateContactWithoutUpdatePermission() {
+		$contact = [
+			'URI' => '3225c0d5-1bd2-43e5-a08c-4e65eaa406b0',
+			'VERSION' => '4.0'
+		];
+
+		$addressBook = $this->createMock(IAddressBook::class);
+		$addressBook
+			->method('getUri')
+			->willReturn('contacts');
+		$addressBook
+			->method('search')
+			->willReturn([$contact]);
+		$addressBook
+			->method('getPermissions')
+			->willReturn(Constants::PERMISSION_READ);
+
+		$this->manager
+			->method('getUserAddressBooks')
+			->willReturn([$addressBook]);
+
+		$result = $this->service
+			->updateContact(
+				'contacts',
+				'3225c0d5-1bd2-43e5-a08c-4e65eaa406b0',
+				null);
+		$this->assertEquals(Http::STATUS_FORBIDDEN, $result->getStatus());
+	}
+
+	public function testUpdateContactWithDeactivatedSocial() {
+		$this->config
+			->method('getAppValue')
+			->willReturn('no');
+
+		$result = $this->service
+			->updateContact(
+				'contacts',
+				'3225c0d5-1bd2-43e5-a08c-4e65eaa406b0',
+				null);
+		$this->assertEquals(HTTP::STATUS_FORBIDDEN, $result->getStatus());
+	}
+
 	/**
 	 * @dataProvider allSocialProfileProviders
 	 */
 	public function testUpdateContactWithoutNetwork($addressbooks, $providers, $body, $imageType, $status) {
+		$this->config
+			->method('getAppValue')
+			->willReturn('yes');
+
 		$this->manager
 			->method('getUserAddressBooks')
 			->willReturn($addressbooks);
@@ -192,6 +238,11 @@ class SocialApiServiceTest extends TestCase {
 			'URI' => $contactId,
 			'VERSION' => '3.0'
 		];
+
+		$this->config
+			->method('getAppValue')
+			->willReturn('yes');
+
 		$provider = $this->createMock(ISocialProvider::class);
 		$provider->method('supportsContact')->willReturn(true);
 		$provider->method('getImageUrls')->willReturn(['https://url1.com/an-url']);
@@ -265,6 +316,11 @@ class SocialApiServiceTest extends TestCase {
 			'URI' => $contactId,
 			'VERSION' => '4.0'
 		];
+
+		$this->config
+			->method('getAppValue')
+			->willReturn('yes');
+
 		$provider = $this->createMock(ISocialProvider::class);
 		$provider->method('supportsContact')->willReturn(true);
 		$provider->method('getImageUrls')->willReturn(['https://url1.com/an-url']);
@@ -394,6 +450,11 @@ class SocialApiServiceTest extends TestCase {
 			'URI' => $contactId,
 			'VERSION' => '4.0'
 		];
+
+		$this->config
+			->method('getAppValue')
+			->willReturn('yes');
+
 		$provider = $this->createMock(ISocialProvider::class);
 		$provider->method('supportsContact')->willReturn(true);
 		$provider->method('getImageUrls')->willReturn(['https://url1.com/an-url']);
@@ -580,7 +641,7 @@ class SocialApiServiceTest extends TestCase {
 			->expects($this->never())
 			->method('getSocialConnector');
 
-		$result = $this->service->updateAddressbooks('mrstest');
+		$result = $this->service->updateAddressBooks('mrstest');
 
 		$this->assertEquals($expected, $result->getStatus());
 
@@ -611,7 +672,7 @@ class SocialApiServiceTest extends TestCase {
 
 		$this->setupAddressbooks();
 
-		$result = $this->service->updateAddressbooks('msstest');
+		$result = $this->service->updateAddressBooks('msstest');
 
 		$this->assertEquals(Http::STATUS_PARTIAL_CONTENT, $result->getStatus());
 
@@ -639,7 +700,7 @@ class SocialApiServiceTest extends TestCase {
 
 		$this->setupAddressbooks();
 
-		$result = $this->service->updateAddressbooks('mrstest', 'contacts2', '22222222-2222-2222-2222-222222222222');
+		$result = $this->service->updateAddressBooks('mrstest', 'contacts2', '22222222-2222-2222-2222-222222222222');
 
 		$this->assertEquals($expected, $result->getStatus());
 
