@@ -251,14 +251,12 @@ describe('ocminvites store', () => {
 			await store.newOcmInvite({
 				email: 'recipient@example.org',
 				message: 'See you soon',
-				note: 'CERN contact',
 			})
 
 			expect(axios.post).toHaveBeenCalledTimes(1)
 			expect(axios.post).toHaveBeenCalledWith('/apps/contacts/ocm/invitations', {
 				email: 'recipient@example.org',
 				message: 'See you soon',
-				note: 'CERN contact',
 			})
 			expect(axios.get).toHaveBeenCalledTimes(1)
 			expect(store.ocmInvites['new-token']).toBeDefined()
@@ -274,7 +272,6 @@ describe('ocminvites store', () => {
 			expect(axios.post).toHaveBeenCalledWith('/apps/contacts/ocm/invitations', {
 				email: '',
 				message: '',
-				note: '',
 			})
 		})
 
@@ -297,7 +294,7 @@ describe('ocminvites store', () => {
 			axios.get.mockRejectedValue(failure)
 
 			const store = useOcmInvitesStore()
-			await expect(store.newOcmInvite({ email: 'recipient@example.org', message: '', note: '' })).resolves.toBe(createResponse)
+			await expect(store.newOcmInvite({ email: 'recipient@example.org', message: '' })).resolves.toBe(createResponse)
 
 			expect(store.inviteListStatus).toBe('error')
 			expect(store.inviteListError).toContain('refresh failed')
@@ -308,7 +305,7 @@ describe('ocminvites store', () => {
 			axios.post.mockRejectedValue(failure)
 
 			const store = useOcmInvitesStore()
-			await expect(store.newOcmInvite({ email: 'recipient@example.org', message: '', note: '' })).rejects.toBe(failure)
+			await expect(store.newOcmInvite({ email: 'recipient@example.org', message: '' })).rejects.toBe(failure)
 
 			expect(axios.get).not.toHaveBeenCalled()
 		})

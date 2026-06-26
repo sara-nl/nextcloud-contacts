@@ -9,25 +9,48 @@
 		<RootNavigation
 			:contacts-list="contactsList"
 			:loading="loadingContacts || loadingCircles || loadingInvites"
-			:invite-actions-enabled="!!defaultAddressbook"
 			:selected-group="selectedGroup"
-			:selected-contact="selectedContact"
-			@open-create-invite="newInvite"
-			@open-accept-invite="manualInviteAccept">
+			:selected-contact="selectedContact">
 			<div class="import-and-new-contact-buttons">
-				<SettingsImportContacts v-if="!loadingContacts && isEmptyGroup && !isChartView && !isCirclesView" />
+				<SettingsImportContacts
+					v-if="!loadingContacts && isEmptyGroup && !isChartView && !isCirclesView"
+					:is-ocm-invites-enabled="isOcmInvitesEnabled" />
 				<!-- new-contact-button -->
 				<NcButton
 					v-if="!loadingContacts"
 					:disabled="!defaultAddressbook"
 					variant="secondary"
-					wide
+					:class="getNewContactButtonClass()"
 					@click="newContact">
 					<template #icon>
 						<IconAdd :size="20" />
 					</template>
 					{{ isCirclesView ? t('contacts', 'Add member') : t('contacts', 'New contact') }}
 				</NcButton>
+				<!-- OCM invite actions: create, accept -->
+				<NcActions
+					v-if="isOcmInvitesEnabled"
+					class="ocm-invites-actions">
+					<template #icon>
+						<IconAccountSwitchOutline :size="20" />
+					</template>
+					<NcActionButton
+						close-after-click
+						@click="openCreateInvite">
+						<template #icon>
+							<IconAdd :size="20" />
+						</template>
+						{{ t('contacts', 'Create invitation') }}
+					</NcActionButton>
+					<NcActionButton
+						close-after-click
+						@click="openAcceptInvite">
+						<template #icon>
+							<IconAccountArrowDownOutline :size="20" />
+						</template>
+						{{ t('contacts', 'Accept invitation') }}
+					</NcActionButton>
+				</NcActions>
 			</div>
 		</RootNavigation>
 
@@ -44,8 +67,11 @@
 		<OcmInvitesContent
 			v-if="isInvitesView"
 			:invites-list="invitesList"
+			:invite-actions-enabled="!!defaultAddressbook"
 			:error-message="ocmInvitesLoadError"
 			:loading="loadingInvites"
+			@open-create-invite="openCreateInvite"
+			@open-accept-invite="openAcceptInvite"
 			@retry-load="fetchOcmInvites" />
 		<ContactsContent
 			v-else
@@ -65,7 +91,6 @@
 		<!-- new invite form -->
 		<Modal
 			v-if="showNewInviteForm"
-			:name="t('contacts', 'Invite someone outside your organization to collaborate.')"
 			:no-close="loadingUpdate"
 			@close="cancelNewInvite">
 			<OcmInviteForm v-model:ocm-invite="ocmInvite" :loading-update="loadingUpdate">
@@ -76,10 +101,6 @@
 							:disabled="loadingUpdate"
 							data-testid="ocm-invite-new-cancel-btn"
 							@click="cancelNewInvite">
-							<template #icon>
-								<IconLoading v-if="loadingUpdate" :size="20" />
-								<IconCancel v-else :size="20" />
-							</template>
 							{{ t("contacts", "Cancel") }}
 						</NcButton>
 						<NcButton
@@ -99,7 +120,6 @@
 		</Modal>
 		<Modal
 			v-if="showManualInvite"
-			:name="t('contacts', 'Accept invitation')"
 			:no-close="loadingUpdate"
 			@close="manualInviteCancel">
 			<OcmAcceptForm
@@ -111,17 +131,12 @@
 		<!-- invite accept dialog -->
 		<Modal
 			v-if="showInviteAcceptDialog"
-			:name="t('contacts', 'Accept invitation')"
 			:no-close="loadingUpdate"
 			@close="cancelInvite">
 			<OcmInviteAccept :token="inviteToken" :provider="inviteProvider">
 				<template #accept-invite-actions>
 					<div class="invite-accept-form__buttons-row">
 						<NcButton variant="tertiary" :disabled="loadingUpdate" @click="cancelInvite">
-							<template #icon>
-								<IconLoading v-if="loadingUpdate" :size="20" />
-								<IconCancel v-else :size="20" />
-							</template>
 							{{ t("contacts", "Cancel") }}
 						</NcButton>
 						<NcButton variant="primary" :disabled="loadingUpdate" @click="acceptInvite">
@@ -152,10 +167,14 @@ import {
 	NcContent as Content,
 	NcLoadingIcon as IconLoading,
 	NcModal as Modal,
+	NcActionButton,
+	NcActions,
 	NcButton,
 } from '@nextcloud/vue'
 import ICAL from 'ical.js'
 import { mapStores } from 'pinia'
+import IconAccountArrowDownOutline from 'vue-material-design-icons/AccountArrowDownOutline.vue'
+import IconAccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import IconCancel from 'vue-material-design-icons/Cancel.vue'
 import IconCheck from 'vue-material-design-icons/Check.vue'
 import IconAdd from 'vue-material-design-icons/Plus.vue'
@@ -190,6 +209,8 @@ const _default = {
 	name: 'Contacts',
 
 	components: {
+		NcActionButton,
+		NcActions,
 		NcButton,
 		CircleContent,
 		ChartContent,
@@ -197,6 +218,8 @@ const _default = {
 		ContactsPicker,
 		Content,
 		ImportView,
+		IconAccountArrowDownOutline,
+		IconAccountSwitchOutline,
 		IconAdd,
 		IconCancel,
 		IconCheck,
@@ -236,7 +259,7 @@ const _default = {
 			isOcmInvitesEnabled,
 			inviteToken: inviteToken,
 			inviteProvider: inviteProvider,
-			ocmInvite: { email: '', message: '', note: '' },
+			ocmInvite: { email: '', message: '' },
 			loadingUpdate: false,
 		}
 	},
@@ -360,7 +383,7 @@ const _default = {
 		 *
 		 * Reads from the parent-side `ocmInvite.sendEmail` patch the child
 		 * emits via v-model. Defensive `!== false` is required because on
-		 * first paint the parent's `ocmInvite` is `{ email, message, note }`
+		 * first paint the parent's `ocmInvite` is `{ email, message }`
 		 * (no `sendEmail` key); without the guard the label would briefly
 		 * render as "Generate invite" before the child's immediate watcher
 		 * emits and snaps it back to "Send invite" when email is required.
@@ -564,9 +587,6 @@ const _default = {
 			this.selectFirstContactIfNone()
 		},
 
-		manualInviteAccept() {
-			this.showManualInvite = true
-		},
 		manualInviteCancel() {
 			this.showManualInvite = false
 		},
@@ -697,9 +717,6 @@ const _default = {
 			this.showInviteAcceptDialog = false
 			this.clearInviteAcceptRoute()
 		},
-		newInvite() {
-			this.showNewInviteForm = true
-		},
 		async sendNewInvite() {
 			if (this.loadingUpdate) {
 				return
@@ -723,13 +740,31 @@ const _default = {
 		},
 		cancelNewInvite() {
 			this.showNewInviteForm = false
-			this.ocmInvite = { email: '', message: '', note: '' }
+			this.ocmInvite = { email: '', message: '' }
 		},
 		clearInviteAcceptRoute() {
 			if (this.$route.name !== ROUTE_NAME_INVITE_ACCEPT_DIALOG) {
 				return
 			}
 			this.$router.replace({ name: 'root' })
+		},
+		openCreateInvite() {
+			if (!this.isOcmInvitesEnabled) {
+				return
+			}
+			this.showNewInviteForm = true
+		},
+		openAcceptInvite() {
+			if (!this.isOcmInvitesEnabled) {
+				return
+			}
+			this.showManualInvite = true
+		},
+		getNewContactButtonClass() {
+			if (this.isOcmInvitesEnabled) {
+				return this.isEmptyGroup ? 'new-contact-button-ocm-invites-enabled-empty-group' : 'new-contact-button-ocm-invites-enabled'
+			}
+			return 'new-contact-button-wide'
 		},
 	},
 }
@@ -739,9 +774,22 @@ export default _default
 
 <style lang="scss" scoped>
 .import-and-new-contact-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--default-grid-baseline);
+	position: relative;
+	display: flex;
+	.new-contact-button-ocm-invites-enabled {
+		width: calc(100% - (var(--default-grid-baseline) + var(--default-clickable-area)));
+	}
+	.new-contact-button-ocm-invites-enabled-empty-group {
+		width: calc(50% - (var(--default-grid-baseline) + var(--default-clickable-area)) * .5);
+	}
+	.new-contact-button-wide {
+		width: 100%;
+	}
+	.ocm-invites-actions {
+		position: absolute;
+		top: 0;
+		inset-inline-end: 0;
+	}
 }
 
 .invite-accept-form__buttons-row {

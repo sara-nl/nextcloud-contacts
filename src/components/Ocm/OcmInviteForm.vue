@@ -5,73 +5,61 @@
 
 <template>
 	<div class="ocm-invite-form">
+		<div class="ocm-invite-form__heading">
+			<h3 class="ocm-invite-form__title">
+				{{ t('contacts', 'Invite someone outside your organization to collaborate') }}
+			</h3>
+		</div>
 		<p class="ocm-invite-form__intro">
 			{{ t('contacts', 'After the invitee accepts the invite, both of you will appear in each other\'s contacts list and you can start sharing data with each other.') }}
 		</p>
 
-		<div class="form-field">
+		<!-- Only show toggle if optional mail is enabled -->
+		<NcCheckboxRadioSwitch
+			v-if="optionalMailEnabled"
+			:model-value="sendEmail"
+			:disabled="loadingUpdate"
+			data-testid="ocm-invite-send-email-checkbox"
+			@update:model-value="sendEmail = $event">
+			{{ t('contacts', 'Send invite via email') }}
+		</NcCheckboxRadioSwitch>
+		<div v-if="showEmailFields" class="ocm-invite-form__fields">
 			<NcTextField
-				type="text"
-				:label="t('contacts', 'Invite label (for your reference)')"
-				:placeholder="t('contacts', 'e.g. Mahdi from OCM')"
-				:model-value="ocmInvite.note"
+				type="email"
+				:label="emailLabel"
+				:placeholder="t('contacts', 'email@example.com')"
+				:model-value="ocmInvite.email"
+				:required="emailRequired"
 				:disabled="loadingUpdate"
-				data-testid="ocm-invite-note-input"
-				@input="setNote" />
-			<p class="hint">
-				{{ t('contacts', 'A name or note to help you identify this invite') }}
-			</p>
-		</div>
-
-		<div class="ocm-invite-form__group">
-			<!-- Only show toggle if optional mail is enabled -->
-			<NcCheckboxRadioSwitch
-				v-if="optionalMailEnabled"
-				:model-value="sendEmail"
+				inputmode="email"
+				data-testid="ocm-invite-email-input"
+				@input="setEmail" />
+			<NcTextArea
+				v-model="messageModel"
+				:label="t('contacts', 'Personal message (optional)')"
+				:placeholder="t('contacts', 'Message to include in the email')"
+				:rows="3"
 				:disabled="loadingUpdate"
-				data-testid="ocm-invite-send-email-checkbox"
-				@update:model-value="sendEmail = $event">
-				{{ t('contacts', 'Send invite via email') }}
-			</NcCheckboxRadioSwitch>
-			<div v-if="showEmailFields" class="ocm-invite-form__fields">
-				<NcTextField
-					type="email"
-					:label="emailLabel"
-					:placeholder="t('contacts', 'email@example.com')"
-					:model-value="ocmInvite.email"
-					:required="emailRequired"
-					:disabled="loadingUpdate"
-					inputmode="email"
-					data-testid="ocm-invite-email-input"
-					@input="setEmail" />
-				<NcTextArea
-					v-model="messageModel"
-					:label="t('contacts', 'Personal message (optional)')"
-					:placeholder="t('contacts', 'Message to include in the email')"
-					:rows="3"
-					:disabled="loadingUpdate"
-					data-testid="ocm-invite-message-input" />
-
-				<!-- Collapsible preview of the email the recipient will receive -->
-				<div class="ocm-invite-form__preview">
-					<NcButton
-						variant="tertiary"
-						class="ocm-invite-form__preview-toggle"
-						:aria-expanded="showPreview"
-						data-testid="ocm-invite-preview-toggle"
-						@click="showPreview = !showPreview">
-						<template #icon>
-							<IconChevronUp v-if="showPreview" :size="20" />
-							<IconChevronDown v-else :size="20" />
-						</template>
-						{{ showPreview ? t('contacts', 'Hide email preview') : t('contacts', 'Show email preview') }}
-					</NcButton>
-					<div v-if="showPreview" class="ocm-invite-form__preview-panel" data-testid="ocm-invite-preview-panel">
-						<p v-if="previewRecipient" class="ocm-invite-form__preview-caption">
-							{{ t('contacts', 'This is what {recipient} will receive:', { recipient: previewRecipient }) }}
-						</p>
-						<div class="ocm-invite-form__preview-body" v-text="emailPreview" />
-					</div>
+				data-testid="ocm-invite-message-input" />
+			<!-- Collapsible preview of the email the recipient will receive -->
+			<div class="ocm-invite-form__preview">
+				<NcButton
+					variant="tertiary"
+					class="ocm-invite-form__preview-toggle"
+					:aria-expanded="showPreview"
+					data-testid="ocm-invite-preview-toggle"
+					@click="showPreview = !showPreview">
+					<template #icon>
+						<IconChevronUp v-if="showPreview" :size="20" />
+						<IconChevronDown v-else :size="20" />
+					</template>
+					{{ showPreview ? t('contacts', 'Hide email preview') : t('contacts', 'Show email preview') }}
+				</NcButton>
+				<div v-if="showPreview" class="ocm-invite-form__preview-panel" data-testid="ocm-invite-preview-panel">
+					<p v-if="previewRecipient" class="ocm-invite-form__preview-caption">
+						{{ t('contacts', 'This is what {recipient} will receive:', { recipient: previewRecipient }) }}
+					</p>
+					<div class="ocm-invite-form__preview-body" v-text="emailPreview" />
 				</div>
 			</div>
 			<p v-if="optionalMailEnabled && !sendEmail" class="hint">
@@ -211,10 +199,6 @@ export default {
 			this.$emit('update:ocmInvite', { ...this.ocmInvite, ...patch })
 		},
 
-		setNote(e) {
-			this.updateInvite({ note: e.target.value })
-		},
-
 		setEmail(e) {
 			this.updateInvite({ email: e.target.value })
 		},
@@ -242,21 +226,14 @@ export default {
 		margin-bottom: calc(var(--default-grid-baseline) * 6);
 	}
 
-	&__group {
-		display: flex;
-		flex-direction: column;
-		gap: calc(var(--default-grid-baseline) * 3);
-		padding: calc(var(--default-grid-baseline) * 3);
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius-large);
-		margin-bottom: calc(var(--default-grid-baseline) * 6);
-		background-color: transparent;
-	}
-
 	&__fields {
 		display: flex;
 		flex-direction: column;
 		gap: calc(var(--default-grid-baseline) * 3);
+	}
+
+	&__title {
+		margin-top: 0;
 	}
 
 	&__preview {

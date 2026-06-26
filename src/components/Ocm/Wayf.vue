@@ -8,9 +8,7 @@
 		<template #default>
 			<div class="wayf-body">
 				<div v-if="token !== ''">
-					<h2>{{ t('contacts', 'Providers') }}</h2>
-					<p>{{ t('contacts', 'Where are you from?') }}</p>
-					<p>{{ t('contacts', 'Please tell us your cloud provider.') }}</p>
+					<h2>{{ t('contacts', 'Select your server') }}</h2>
 					<NcFormBox class="wayf-form">
 						<div v-if="hasFederationData" class="wayf-search">
 							<NcTextField
@@ -45,17 +43,17 @@
 								</div>
 							</div>
 							<p v-else class="wayf-empty">
-								{{ t('contacts', 'No providers match your search.') }}
+								{{ t('contacts', 'No servers match your search.') }}
 							</p>
 						</div>
 						<p v-else class="wayf-empty">
-							{{ t('contacts', 'No providers are currently available.') }}
+							{{ t('contacts', 'No servers are currently available.') }}
 						</p>
 						<div class="wayf-manual">
 							<NcTextField
 								id="wayf-manual"
 								v-model="manualProvider"
-								:label="t('contacts', 'No provider listed? Enter one manually.')"
+								:label="t('contacts', 'Your server not listed? Enter one manually.')"
 								type="text"
 								name="manual"
 								@keydown.enter.prevent="goToManualProvider">

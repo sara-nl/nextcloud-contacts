@@ -30,6 +30,14 @@
 			<template #icon>
 				<IconAccountSwitchOutline :size="20" />
 			</template>
+			<template #action>
+				<NcButton variant="primary" @click="openCreateInvite()">
+					{{ t('contacts', 'Create invitation') }}
+				</NcButton>
+				<NcButton variant="primary" @click="openAcceptInvite()">
+					{{ t('contacts', 'Accept invitation') }}
+				</NcButton>
+			</template>
 		</EmptyContent>
 	</AppContent>
 
@@ -87,13 +95,18 @@ export default {
 			required: true,
 		},
 
+		inviteActionsEnabled: {
+			type: Boolean,
+			default: false,
+		},
+
 		errorMessage: {
 			type: String,
 			default: '',
 		},
 	},
 
-	emits: ['retry-load'],
+	emits: ['retry-load', 'open-create-invite', 'open-accept-invite'],
 
 	data() {
 		return {
@@ -135,6 +148,20 @@ export default {
 		retryLoad() {
 			this.$emit('retry-load')
 		},
+
+		openCreateInvite() {
+			if (!this.inviteActionsEnabled) {
+				return
+			}
+			this.$emit('open-create-invite')
+		},
+
+		openAcceptInvite() {
+			if (!this.inviteActionsEnabled) {
+				return
+			}
+			this.$emit('open-accept-invite')
+		},
 	},
 }
 </script>
@@ -148,5 +175,9 @@ export default {
 	display: flex;
 	justify-content: center;
 	padding-bottom: calc(var(--default-grid-baseline) * 3);
+}
+
+.empty-content button {
+	margin: var(--default-grid-baseline);
 }
 </style>

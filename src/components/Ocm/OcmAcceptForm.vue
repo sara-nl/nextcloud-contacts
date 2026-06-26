@@ -5,6 +5,11 @@
 
 <template>
 	<div class="ocm_manual_form">
+		<div class="ocm_manual_form__heading">
+			<h3 class="ocm_manual_form__title">
+				{{ t('contacts', 'Accept invitation') }}
+			</h3>
+		</div>
 		<p>
 			{{ t('contacts', 'Accepting will add the inviter to your contacts list and in return, your contact info will be sent to the inviter. From there on you can start sharing data with each other.') }}
 		</p>
@@ -19,10 +24,6 @@
 
 		<div class="ocm_manual_buttons">
 			<NcButton variant="tertiary" :disabled="loadingUpdate" @click="cancel">
-				<template #icon>
-					<NcLoadingIcon v-if="loadingUpdate" :size="20" />
-					<IconCancel v-else :size="20" />
-				</template>
 				{{ t('contacts', 'Cancel') }}
 			</NcButton>
 			<NcButton variant="primary" :disabled="loadingUpdate" @click="accept">
@@ -40,7 +41,6 @@
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-import IconCancel from 'vue-material-design-icons/Cancel.vue'
 import IconCheck from 'vue-material-design-icons/Check.vue'
 
 export default {
@@ -50,7 +50,6 @@ export default {
 		NcButton,
 		NcLoadingIcon,
 		IconCheck,
-		IconCancel,
 	},
 
 	props: {
@@ -184,6 +183,9 @@ export default {
   }
   :deep(.input-field__helper-text-message) {
 	word-break: initial;
+  }
+  &__title {
+	margin-top: 0;
   }
 }
 </style>

@@ -160,14 +160,13 @@ class FederatedInvitesController extends Controller {
 	 *
 	 * @param string $email the recipient email address to send the invitation to (optional)
 	 * @param string $message the optional message to send with the invitation
-	 * @param string $note optional note/label for identifying the invite
 	 * @return JSONResponse with data signature ['invite' | 'message'] - the invite url or an error message in case of error.
 	 */
 	#[NoAdminRequired]
 	#[UserRateLimit(limit: 60, period: 3600)]
 	#[BruteForceProtection(action: 'ocmInviteCreate')]
 	#[FrontpageRoute(verb: 'POST', url: '/ocm/invitations')]
-	public function createInvite(string $email = '', string $message = '', string $note = ''): JSONResponse {
+	public function createInvite(string $email = '', string $message = ''): JSONResponse {
 		if (($disabled = $this->requireOcmInvitesEnabled()) !== null) {
 			return $disabled;
 		}
@@ -206,10 +205,6 @@ class FederatedInvitesController extends Controller {
 		$invite->setExpiredAt($this->federatedInvitesService->getInviteExpirationDate($invite->getCreatedAt()));
 		if (!empty($email)) {
 			$invite->setRecipientEmail($email);
-		}
-		// Store note in recipientName field (used as label until invite is accepted)
-		if (!empty($note)) {
-			$invite->setRecipientName($note);
 		}
 		$invite->setAccepted(false);
 		$inserted = false;
@@ -291,12 +286,18 @@ class FederatedInvitesController extends Controller {
 		if ($provider === null) {
 			return new JSONResponse(['message' => $this->il10->t('The invite provider is invalid or not allowed.')], Http::STATUS_BAD_REQUEST);
 		}
-		$recipientProvider = $this->federatedInvitesService->getProviderFQDN();
+		$recipientProviderFqdn = $this->federatedInvitesService->getProviderFQDN();
+		// do not accept an invite from this instance
+		$senderProviderFqdn = parse_url($provider)['host'];
+		$this->logger->debug("acceptInvite() - $recipientProviderFqdn === $senderProviderFqdn");
+		if ($recipientProviderFqdn === $senderProviderFqdn) {
+			return new JSONResponse(['message' => $this->il10->t('Unable to accept this invitation. You are trying to accept an outgoing invitation.')], Http::STATUS_BAD_REQUEST);
+		}
 		$userId = $localUser->getUID();
 		$email = $localUser->getEMailAddress();
 		$name = $localUser->getDisplayName();
-		if ($recipientProvider === '' || $userId === '' || $email === '' || $name === '') {
-			$this->logger->error("All of these must be set: recipientProvider: $recipientProvider, email: $email, userId: $userId, name: $name", ['app' => Application::APP_ID]);
+		if ($recipientProviderFqdn === '' || $userId === '' || $email === '' || $name === '') {
+			$this->logger->error("All of these must be set: recipientProvider: $recipientProviderFqdn, email: $email, userId: $userId, name: $name", ['app' => Application::APP_ID]);
 			return new JSONResponse(['message' => 'Could not accept invite, user data is incomplete.'], Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$cloudId = '';
@@ -321,7 +322,7 @@ class FederatedInvitesController extends Controller {
 					$provider,
 					'/invite-accepted',
 					[
-						'recipientProvider' => $recipientProvider,
+						'recipientProvider' => $recipientProviderFqdn,
 						'token' => $token,
 						'userID' => $userId,
 						'email' => $email,

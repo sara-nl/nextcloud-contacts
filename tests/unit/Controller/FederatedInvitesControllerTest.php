@@ -423,16 +423,13 @@ class FederatedInvitesControllerTest extends TestCase {
 		$this->mailer->method('createMessage')->willReturn($message);
 		$this->mailer->method('send')->willReturn([]);
 
-		$response = $this->controller->attachEmailAndSend(self::TOKEN, 'recipient@example.org', '<b>note</b>');
+		$response = $this->controller->attachEmailAndSend(self::TOKEN, 'recipient@example.org');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertNotNull($capturedHtml);
 		$this->assertStringNotContainsString('<script>', (string)$capturedHtml);
 		$this->assertStringContainsString('Eve &lt;script&gt;', (string)$capturedHtml);
-		$this->assertStringNotContainsString('<b>note</b>', (string)$capturedHtml);
-		$this->assertStringContainsString('&lt;b&gt;note&lt;/b&gt;', (string)$capturedHtml);
 		$this->assertNotNull($capturedPlain);
-		$this->assertStringContainsString('<b>note</b>', (string)$capturedPlain);
 	}
 
 	public function testAttachEmailAndSendRevertsWhenMailerThrows(): void {
@@ -532,11 +529,10 @@ class FederatedInvitesControllerTest extends TestCase {
 		$this->urlGenerator->method('linkToRoute')->with('contacts.page.index')->willReturn('/apps/contacts/');
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://local.example' . $path);
 
-		$response = $this->controller->createInvite('', '', 'mesh peer');
+		$response = $this->controller->createInvite('', '');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertNotNull($capturedInvite);
-		$this->assertSame('mesh peer', $capturedInvite->getRecipientName());
 		$this->assertSame(self::UID, $capturedInvite->getUserId());
 		$this->assertStringContainsString('/apps/contacts/ocm-invites/', $response->getData()['invite']);
 	}

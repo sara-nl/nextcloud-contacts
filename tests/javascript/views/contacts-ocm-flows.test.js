@@ -108,7 +108,7 @@ describe('Contacts OCM flow methods', () => {
 		const vm = {
 			loadingUpdate: false,
 			showNewInviteForm: true,
-			ocmInvite: { email: 'recipient@example.org', message: '', note: '', sendEmail: false },
+			ocmInvite: { email: 'recipient@example.org', message: '', sendEmail: false },
 			ocmInvitesConfig: { optionalMail: true },
 			ocminvitesStore: {
 				newOcmInvite: jest.fn().mockRejectedValue(createFailure),
@@ -128,7 +128,7 @@ describe('Contacts OCM flow methods', () => {
 	test('sendNewInvite reports the short missing email message', async () => {
 		const vm = {
 			loadingUpdate: false,
-			ocmInvite: { email: '', message: '', note: '', sendEmail: true },
+			ocmInvite: { email: '', message: '', sendEmail: true },
 			ocmInvitesConfig: { optionalMail: true },
 			ocminvitesStore: {
 				newOcmInvite: jest.fn(),
@@ -147,7 +147,7 @@ describe('Contacts OCM flow methods', () => {
 		const createFailure = { response: { data: { message: 'backend reached' } } }
 		const vm = {
 			loadingUpdate: false,
-			ocmInvite: { email: '', message: 'hello', note: 'mesh peer', sendEmail: false },
+			ocmInvite: { email: '', message: 'hello', sendEmail: false },
 			showNewInviteForm: true,
 			ocminvitesStore: {
 				newOcmInvite: jest.fn().mockRejectedValue(createFailure),

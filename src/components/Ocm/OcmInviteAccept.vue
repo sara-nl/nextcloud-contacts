@@ -4,7 +4,12 @@
 -->
 
 <template>
-	<div class="contact-header__infos">
+	<div class="accept-invite-dialog">
+		<div class="accept-invite-dialog__heading">
+			<h3 class="accept-invite-dialog__title">
+				{{ t('contacts', 'Accept invitation') }}
+			</h3>
+		</div>
 		<p>{{ t('contacts', 'Accepting will add the inviter to your contacts list and in return, your contact info will be sent to the inviter. From there on you can start sharing data with each other.') }}</p>
 		<dl class="invitation-details">
 			<dt>{{ t('contacts', 'Invite code') }}</dt>
@@ -41,12 +46,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.contact-header__infos {
+.accept-invite-dialog {
 	margin: calc(var(--default-grid-baseline) * 4);
 
 	> p {
 		margin-bottom: calc(var(--default-grid-baseline) * 6);
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__title {
+		margin-top: 0;
 	}
 }
 

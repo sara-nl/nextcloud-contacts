@@ -94,49 +94,24 @@
 				</template>
 			</AppNavigationItem>
 
-			<template v-if="isOcmInvitesEnabled">
-				<AppNavigationCaption
-					id="external-invitations"
-					:name="SECTION_EXTERNAL_INVITATIONS">
-					<template #actions>
-						<NcActionButton
-							close-after-click
-							:disabled="!inviteActionsEnabled"
-							@click="openCreateInvite">
-							<template #icon>
-								<IconAdd :size="20" />
-							</template>
-							{{ t('contacts', 'Create invitation') }}
-						</NcActionButton>
-						<NcActionButton
-							close-after-click
-							:disabled="!inviteActionsEnabled"
-							@click="openAcceptInvite">
-							<template #icon>
-								<IconAccountArrowDownOutline :size="20" />
-							</template>
-							{{ t('contacts', 'Accept invitation') }}
-						</NcActionButton>
-					</template>
-				</AppNavigationCaption>
-				<AppNavigationItem
-					id="ocm-invites"
-					:name="GROUP_ALL_OCM_INVITES"
-					:to="{
-						name: ROUTE_NAME_ALL_OCM_INVITES,
-					}"
-					:active="routeState === 'ocm-invites'"
-					@click="updateRouteState('ocm-invites')">
-					<template #icon>
-						<IconAccountSwitchOutline :size="20" />
-					</template>
-					<template #counter>
-						<NcCounterBubble
-							v-if="pendingOcmInvitesCount"
-							:count="pendingOcmInvitesCount" />
-					</template>
-				</AppNavigationItem>
-			</template>
+			<AppNavigationItem
+				v-if="isOcmInvitesEnabled"
+				id="ocm-invites"
+				:name="GROUP_ALL_OCM_INVITES"
+				:to="{
+					name: ROUTE_NAME_ALL_OCM_INVITES,
+				}"
+				:active="routeState === 'ocm-invites'"
+				@click="updateRouteState('ocm-invites')">
+				<template #icon>
+					<IconAccountSwitchOutline :size="20" />
+				</template>
+				<template #counter>
+					<NcCounterBubble
+						v-if="pendingOcmInvitesCount"
+						:count="pendingOcmInvitesCount" />
+				</template>
+			</AppNavigationItem>
 
 			<AppNavigationCaption
 				id="newgroup"
@@ -259,7 +234,6 @@ import {
 import { mapStores } from 'pinia'
 import naturalCompare from 'string-natural-compare'
 import IconUserFilled from 'vue-material-design-icons/Account.vue'
-import IconAccountArrowDownOutline from 'vue-material-design-icons/AccountArrowDownOutline.vue'
 import IconContactFilled from 'vue-material-design-icons/AccountMultiple.vue'
 import IconContact from 'vue-material-design-icons/AccountMultipleOutline.vue'
 import IconUser from 'vue-material-design-icons/AccountOutline.vue'
@@ -295,7 +269,6 @@ export default {
 		Cog,
 		ContactsSettings,
 		GroupNavigationItem,
-		IconAccountArrowDownOutline,
 		IconAccountSwitchOutline,
 		IconContact,
 		IconContactFilled,
@@ -316,17 +289,7 @@ export default {
 			type: Boolean,
 			default: false,
 		},
-
-		inviteActionsEnabled: {
-			type: Boolean,
-			default: false,
-		},
 	},
-
-	emits: [
-		'open-create-invite',
-		'open-accept-invite',
-	],
 
 	data() {
 		return {
@@ -585,20 +548,6 @@ export default {
 
 		updateRouteState(state) {
 			this.routeState = state
-		},
-
-		openCreateInvite() {
-			if (!this.inviteActionsEnabled) {
-				return
-			}
-			this.$emit('open-create-invite')
-		},
-
-		openAcceptInvite() {
-			if (!this.inviteActionsEnabled) {
-				return
-			}
-			this.$emit('open-accept-invite')
 		},
 	},
 }

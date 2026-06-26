@@ -27,7 +27,6 @@ interface OcmInvitesState {
 interface NewInvitePayload {
 	email?: string
 	message?: string
-	note?: string
 }
 
 interface AttachEmailPayload {
@@ -120,7 +119,6 @@ const useOcmInvitesStore = defineStore('ocminvites', {
 			const payload = {
 				email: invite.email || '',
 				message: invite.message || '',
-				note: invite.note || '',
 			}
 			let response
 			try {
